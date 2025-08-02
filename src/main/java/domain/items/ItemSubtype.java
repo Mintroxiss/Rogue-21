@@ -1,0 +1,14 @@
+package domain.items;
+
+public enum ItemSubtype {
+    // FOOD
+    RAISIN_BREAD, SLIME_MOLD, FRUIT,
+    // WEAPON
+    DAGGER, MACE, LONG_SWORD, BOW,
+    // SCROLL
+    IDENTIFY, TELEPORT, ENCHANT_ARMOR,
+    // POTION
+    RESTORE_STRENGTH, INCREASE_HEALTH,
+    // TREASURE
+    GOLD_PIECE, GEM, MAGIC_AMULET
+}
