@@ -10,6 +10,7 @@ public class Item {
     private final Integer agilityBoost;
     private final Integer strengthBoost;
     private final Integer price;
+    private Integer count;
 
     public Item(
             ItemType type,
@@ -18,7 +19,8 @@ public class Item {
             Integer maxHealthBoost,
             Integer agilityBoost,
             Integer strengthBoost,
-            Integer price
+            Integer price,
+            Integer count
     ) {
         this.type = type;
         this.subtype = subtype;
@@ -27,6 +29,10 @@ public class Item {
         this.agilityBoost = agilityBoost;
         this.strengthBoost = strengthBoost;
         this.price = price;
+        if (count <= 0) {
+            throw new IllegalArgumentException("Count of item does not be <= 0");
+        }
+        this.count = count;
     }
 
     @Override
@@ -74,5 +80,13 @@ public class Item {
 
     public Integer getPrice() {
         return price;
+    }
+
+    public Integer getCount() {
+        return count;
+    }
+
+    public void setCount(Integer count) {
+        this.count = count;
     }
 }

@@ -1,15 +1,16 @@
 package domain.creatures;
 
+import domain.TileType;
 import domain.positions.MovablePosition;
 import domain.items.Item;
 import domain.items.ItemType;
 
-public class Character extends Creature{
+public class Hero extends Creature {
     private Integer maxHealth = 12;
     private Item currentWeapon;
 
-    public Character(Item currentWeapon, MovablePosition pos) {
-        super(12, 5, 16, pos);
+    public Hero(MovablePosition pos, Item currentWeapon) {
+        super(12, 5, 16, pos, TileType.HERO);
         this.currentWeapon = currentWeapon;
     }
 

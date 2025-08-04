@@ -1,6 +1,5 @@
 package domain;
 
-import domain.items.InventoryItem;
 import domain.items.Item;
 import domain.items.ItemSubtype;
 
@@ -8,19 +7,19 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 public class Inventory {
-    private final ArrayList<InventoryItem> items;
+    private final ArrayList<Item> items;
 
-    public Inventory(ArrayList<InventoryItem> items) {
+    public Inventory(ArrayList<Item> items) {
         this.items = items;
     }
 
     public Item takeItem(ItemSubtype subtype) {
-        Iterator<InventoryItem> iterator = items.iterator();
+        Iterator<Item> iterator = items.iterator();
         while (iterator.hasNext()) {
-            InventoryItem item = iterator.next();
+            Item item = iterator.next();
             if (item.getSubtype() == subtype) {
                 if (item.getCount() > 0) {
-                    item.decreaseCount();
+                    item.setCount(item.getCount() - 1);
                     return item;
                 } else {
                     iterator.remove();
@@ -30,13 +29,18 @@ public class Inventory {
         return null;
     }
 
+
+    /**
+     * Кладёт новый предмет в инвентрарь
+     * @param newItem предмет, складываемый в инвентарь
+     */
     public void putItem(Item newItem) {
-        for (InventoryItem item : items) {
+        for (Item item : items) {
             if (item.equals(newItem)) {
-                item.addCount();
+                item.setCount(item.getCount() + newItem.getCount());
                 return;
             }
         }
-        items.add(new InventoryItem(newItem, 1));
+        items.add(newItem);
     }
 }
