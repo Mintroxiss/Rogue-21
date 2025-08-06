@@ -17,7 +17,7 @@ public class Main {
         GameSession gameSession = new GameSession();
 
         Screen screen = new DefaultTerminalFactory()
-                .setInitialTerminalSize(new TerminalSize(gameSession.COLUMN_NUM, gameSession.ROW_NUM + 4))
+                .setInitialTerminalSize(new TerminalSize(gameSession.COLUMN_NUM, gameSession.ROW_NUM + 6))
                 .createScreen();
 
         screen.startScreen();
@@ -28,17 +28,70 @@ public class Main {
         while (gameSession.isNotGameOver()) {
             if (gameSession.isFieldUpdating()) {
                 switch (gameSession.getGameSessionMode()) {
-                    case ENTER_THE_NAME -> {}
-                    case GAME_FIELD -> addGameFieldInScreen(graphics, gameSession);
-                    case INVENTORY -> addInventoryFieldInScreen(graphics, gameSession);
-                    case SCORES -> {}
+                    case ENTER_THE_NAME -> {
+                    }
+                    case GAME_FIELD -> {
+                        addGameFieldInScreen(graphics, gameSession);
+                        addGameInfoInScreen(graphics, gameSession);
+                    }
+                    case INVENTORY -> {
+                        addInventoryFieldInScreen(graphics, gameSession);
+                        addGameInfoInScreen(graphics, gameSession);
+                    }
+                    case SCORES -> {
+                    }
                 }
+                addNotificationInScreen(graphics, gameSession);
                 screen.refresh();
             }
             gameSession.gameTick(getKey(screen));
         }
 
         screen.stopScreen();
+    }
+
+    private static void addGameInfoInScreen(TextGraphics graphics, GameSession gameSession) {
+        String[] gameInfo = gameSession.getGameInfo();
+        for (int i = 0; i < gameSession.COLUMN_NUM; i++) {
+            graphics.setCharacter(i, gameSession.ROW_NUM + 4, ' ');
+        }
+        graphics.setForegroundColor(TextColor.ANSI.WHITE);
+        int index = 0;
+        for (String s : gameInfo) {
+            for (int j = 0; j < s.length(); j++) {
+                graphics.setCharacter(index, gameSession.ROW_NUM + 4, s.charAt(j));
+                index++;
+            }
+            index += 3;
+        }
+    }
+
+    private static void addNotificationInScreen(TextGraphics graphics, GameSession gameSession) {
+        String notification = gameSession.getNotification();
+        int offset = 1;
+        int row = 1;
+        if (notification != null) {
+            clearNotificationInScreen(graphics, offset, gameSession, row);
+            graphics.setForegroundColor(TextColor.ANSI.WHITE);
+            for (int i = offset; i < gameSession.COLUMN_NUM && i - offset < notification.length(); i++) {
+                graphics.setCharacter(i, row, notification.charAt(i - offset));
+            }
+        } else {
+            clearNotificationInScreen(graphics, offset, gameSession, row);
+        }
+    }
+
+    private static void clearNotificationInScreen(
+            TextGraphics graphics,
+            int offset,
+            GameSession gameSession,
+            int row
+    ) {
+        if (!graphics.getCharacter(offset, 1).is(' ')) {
+            for (int i = 0; i < gameSession.COLUMN_NUM; i++) {
+                graphics.setCharacter(i, row, ' ');
+            }
+        }
     }
 
     private static String getKey(Screen screen) {
@@ -71,7 +124,7 @@ public class Main {
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
         for (int i = 0; i < gameSession.ROW_NUM; i++) {
             for (int j = 0; j < gameSession.COLUMN_NUM; j++) {
-                graphics.setCharacter(j, i + 2, inventoryField[i][j]);
+                graphics.setCharacter(j, i + 3, inventoryField[i][j]);
             }
         }
     }
@@ -87,7 +140,7 @@ public class Main {
                     default -> TextColor.ANSI.WHITE;
                 };
                 graphics.setForegroundColor(color);
-                char symbol = switch(gameField[i][j]) {
+                char symbol = switch (gameField[i][j]) {
                     case CORRIDOR -> '░';
                     case ITEM -> '(';
                     case DOOR -> '▋';
@@ -101,7 +154,7 @@ public class Main {
                     case SNAKE_MAGE -> 'S';
                     default -> ' ';
                 };
-                graphics.setCharacter(j, i + 2, symbol);
+                graphics.setCharacter(j, i + 3, symbol);
             }
         }
     }

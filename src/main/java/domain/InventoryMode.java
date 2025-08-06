@@ -1,14 +1,13 @@
 package domain;
 
 public enum InventoryMode {
-    USE_FOOD("use item"),
-    USE_POTION("use potion"),
-    USE_SCROLL("use scroll"),
-    PUT_ITEM("put item"),
-    SHOW_ITEMS("show items"),
-    THROW_AWAY_ITEM("throw away item"),
-    EQUIP_WEAPON("equip weapon"),
-    NOTHING("nothing");
+    USE_FOOD("Eat food"),
+    USE_POTION("Use potion"),
+    USE_SCROLL("Use scroll"),
+    SHOW_ITEMS("Inventory"),
+    THROW_AWAY_ITEM("Throw away"),
+    EQUIP_WEAPON("Equip weapon"),
+    NOTHING("");
 
     private final String action;
 
@@ -16,8 +15,7 @@ public enum InventoryMode {
         this.action = action;
     }
 
-    @Override
-    public String toString() {
+    public String getAction() {
         return action;
     }
 }

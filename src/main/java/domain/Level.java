@@ -15,6 +15,8 @@ public class Level {
     private final int COLUMN_NUM;
     private Cell[][] gameField;
 
+    private String notification = null;
+
     private boolean passed = false;
 
     public Level(int rowNum, int columnNum, int levelNum, Creature hero) {
@@ -89,9 +91,13 @@ public class Level {
         if (newCell.getBase().getWalkable()) {
             Cell oldCell = gameField[pos.getY()][pos.getX()];
             Hero hero = (Hero) oldCell.getCreature();
-            if (newCell.getItem() != null) {
+            Item item = newCell.getItem();
+            if (item != null) {
                 if (hero.putItemIntoInventory(newCell.getItem())) {
+                    notification = "Picked up " + item.getCount() + " " + item.getSubtype().getName();
                     newCell.setItem(null);
+                } else {
+                    notification = "Inventory is full";
                 }
                 // TODO Логика подбора предмета
             }
@@ -136,5 +142,15 @@ public class Level {
 
     public boolean isPassed() {
         return passed;
+    }
+
+    public String getNotification() {
+        String res = notification;
+        notification = null;
+        return res;
+    }
+
+    public boolean cellWithHeroHasItem(MovablePosition pos) {
+        return gameField[pos.getY()][pos.getX()].getItem() != null;
     }
 }

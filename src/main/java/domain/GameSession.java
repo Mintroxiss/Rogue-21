@@ -17,6 +17,7 @@ public class GameSession {
 
     private final Hero hero = new Hero(new MovablePosition(COLUMN_NUM / 2, ROW_NUM / 2), null);
     private Level level = new Level(ROW_NUM, COLUMN_NUM, levelNum, hero);
+    private String notification = null;
 
     public TileType[][] getGameField() {
         fieldUpdating = false;
@@ -42,6 +43,11 @@ public class GameSession {
             case GAME_FIELD -> executeGameFieldCommand(command);
             case INVENTORY -> executeInventoryCommand(command);
 //            case SCORES -> ;
+        }
+
+        String levelNotification = level.getNotification();
+        if (levelNotification != null) {
+            notification = levelNotification;
         }
     }
 
@@ -85,9 +91,6 @@ public class GameSession {
                 }
                 yield true;
             }
-            case PUT_ITEM -> {
-                yield true;
-            }
             case SHOW_ITEMS -> {
                 gameSessionMode = GameSessionMode.GAME_FIELD;
                 inventoryMode = InventoryMode.NOTHING;
@@ -115,6 +118,9 @@ public class GameSession {
             }
             case NOTHING -> throw new IllegalArgumentException("Inventory mod not installed");
         };
+        if (gameSessionMode == GameSessionMode.INVENTORY) {
+            notification = inventoryMode.getAction();
+        }
     }
 
     private void executeGameFieldCommand(String command) {
@@ -130,20 +136,24 @@ public class GameSession {
                 yield true;
             }
             case "t" -> {
-                hero.createInventoryField(null, ROW_NUM, COLUMN_NUM);
-                gameSessionMode = GameSessionMode.INVENTORY;
-                inventoryMode = InventoryMode.THROW_AWAY_ITEM;
+                if (level.cellWithHeroHasItem(hero.getPos())) {
+                    notification = "Floor is occupied";
+                } else {
+                    hero.createInventoryField(null, ROW_NUM, COLUMN_NUM);
+                    gameSessionMode = GameSessionMode.INVENTORY;
+                    inventoryMode = InventoryMode.THROW_AWAY_ITEM;
+                }
                 yield true;
             }
             case "j" -> {
-                boolean res = false;
                 if (hero.getHealth() < hero.getMaxHealth()) {
                     hero.createInventoryField(ItemType.FOOD, ROW_NUM, COLUMN_NUM);
                     gameSessionMode = GameSessionMode.INVENTORY;
                     inventoryMode = InventoryMode.USE_FOOD;
-                    res = true;
+                } else {
+                    notification = "Max HP";
                 }
-                yield res;
+                yield true;
             }
             case "e" -> {
                 hero.createInventoryField(ItemType.SCROLL, ROW_NUM, COLUMN_NUM);
@@ -154,6 +164,9 @@ public class GameSession {
 
             default -> false;
         };
+        if (gameSessionMode == GameSessionMode.INVENTORY) {
+            notification = inventoryMode.getAction();
+        }
     }
 
     public boolean isFieldUpdating() {
@@ -163,5 +176,21 @@ public class GameSession {
     private void nextLevel() {
         levelNum++;
         level = new Level(ROW_NUM, COLUMN_NUM, levelNum, hero);
+    }
+
+    public String getNotification() {
+        String res = notification;
+        notification = null;
+        return res;
+    }
+
+    public String[] getGameInfo() {
+        return new String[]{
+                "Level:" + levelNum,
+                "HP:" + hero.getHealth() + "(" + hero.getMaxHealth() + ")",
+                "Str:" + hero.getStrength(),
+                "Ag:" + hero.getAgility(),
+                "Gold:",
+        };
     }
 }
