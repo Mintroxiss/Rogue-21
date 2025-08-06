@@ -1,8 +1,9 @@
 package domain.items;
 
 public enum ItemType {
-    FOOD,
     WEAPON,
+    ARMOR,
+    FOOD,
     SCROLL,
     POTION,
     TREASURE

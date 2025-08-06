@@ -1,7 +1,13 @@
 package domain;
 
+import domain.cells.Cell;
+import domain.cells.Tile;
+import domain.cells.TileType;
 import domain.creatures.Creature;
 import domain.creatures.Hero;
+import domain.items.Item;
+import domain.items.ItemSubtype;
+import domain.items.ItemType;
 import domain.positions.MovablePosition;
 
 public class Level {
@@ -28,7 +34,10 @@ public class Level {
                 gameField[i][j] = new Cell(new Tile(true, TileType.FLOOR), creature);
             }
         }
-
+        for (int i = 0; i < 6; i++) {
+            gameField[12][i + 12] = new Cell(new Tile(false, TileType.WALL));
+        }
+        gameField[2][4].setItem(new Item(ItemType.ARMOR, ItemSubtype.BANDED_MAIL, 1));
         return gameField;
     }
 
@@ -81,6 +90,9 @@ public class Level {
             Cell oldCell = gameField[pos.getY()][pos.getX()];
             Hero hero = (Hero) oldCell.getCreature();
             if (newCell.getItem() != null) {
+                if (hero.putItemIntoInventory(newCell.getItem())) {
+                    newCell.setItem(null);
+                }
                 // TODO Логика подбора предмета
             }
             newCell.setCreature(hero);
@@ -88,6 +100,21 @@ public class Level {
             return true;
         }
         return false;
+    }
+
+    public boolean heroThrowAwayItem(Hero hero, int num) {
+        boolean res = false;
+        Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        Item item = hero.throwAwayItem(num);
+        if (cellWithHero.getItem() == null) {
+            if (item != null) {
+                cellWithHero.setItem(item);
+                res = true;
+            }
+        } else {
+            hero.putItemIntoInventory(item);
+        }
+        return res;
     }
 
     /**

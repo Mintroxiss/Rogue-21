@@ -1,7 +1,7 @@
 package domain.creatures;
 
-import domain.Tile;
-import domain.TileType;
+import domain.cells.Tile;
+import domain.cells.TileType;
 import domain.positions.MovablePosition;
 
 public abstract class Creature {

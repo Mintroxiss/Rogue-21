@@ -1,4 +1,4 @@
-package domain;
+package domain.cells;
 
 public class Tile {
     private final boolean walkable;

@@ -1,6 +1,6 @@
 package domain.creatures;
 
-import domain.TileType;
+import domain.cells.TileType;
 import domain.positions.MovablePosition;
 
 public class Enemy extends Creature {

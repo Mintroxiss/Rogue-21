@@ -1,4 +1,4 @@
-package domain;
+package domain.cells;
 
 import domain.creatures.Creature;
 import domain.items.Item;

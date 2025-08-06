@@ -1,38 +1,68 @@
 package domain.items;
 
-import java.util.Objects;
-
 public class Item {
     private final ItemType type;
     private final ItemSubtype subtype;
-    private final Integer healthBoost;
-    private final Integer maxHealthBoost;
-    private final Integer agilityBoost;
-    private final Integer strengthBoost;
-    private final Integer price;
-    private Integer count;
+    private Integer healthBoost = null;
+    private Integer maxHealthBoost = null;
+    private Integer agilityBoost = null;
+    private Integer strengthBoost = null;
+    private Integer price = null;
+    private int count = 0;
 
     public Item(
             ItemType type,
             ItemSubtype subtype,
-            Integer healthBoost,
-            Integer maxHealthBoost,
-            Integer agilityBoost,
-            Integer strengthBoost,
-            Integer price,
-            Integer count
+            int count
     ) {
         this.type = type;
         this.subtype = subtype;
-        this.healthBoost = healthBoost;
-        this.maxHealthBoost = maxHealthBoost;
-        this.agilityBoost = agilityBoost;
-        this.strengthBoost = strengthBoost;
-        this.price = price;
+        switch (type) {
+            case WEAPON -> this.strengthBoost = subtype.getValue();
+            case ARMOR -> this.agilityBoost = subtype.getValue();
+            case FOOD -> this.healthBoost = subtype.getValue();
+            case SCROLL, POTION -> {
+                switch (subtype) {
+                    case SCROLL_OF_DEXTERITY, POTION_OF_DEXTERITY -> this.agilityBoost = subtype.getValue();
+                    case SCROLL_OF_VITALITY, POTION_OF_VITALITY -> this.maxHealthBoost = subtype.getValue();
+                    case SCROLL_OF_STRENGTH, POTION_OF_STRENGTH -> this.strengthBoost = subtype.getValue();
+                    default -> throw new IllegalArgumentException("ItemSubtype is not processed");
+                }
+            }
+            case TREASURE -> this.price = subtype.getValue();
+            default -> throw new IllegalArgumentException("ItemType is not processed");
+        }
         if (count <= 0) {
             throw new IllegalArgumentException("Count of item does not be <= 0");
         }
         this.count = count;
+    }
+
+    public Item(Item item, int count) {
+        this(item.getType(), item.getSubtype(), count);
+    }
+
+    /**
+     * Возвращает описание предмета
+     *
+     * @return информация о предмете
+     */
+    public String getDescription() {
+        String res = count + " +";
+        res += switch (type) {
+            case WEAPON -> strengthBoost;
+            case ARMOR -> agilityBoost;
+            case FOOD -> healthBoost;
+            case TREASURE -> price;
+            case SCROLL, POTION -> switch (subtype) {
+                case SCROLL_OF_DEXTERITY, POTION_OF_DEXTERITY -> agilityBoost;
+                case SCROLL_OF_VITALITY, POTION_OF_VITALITY -> maxHealthBoost;
+                case SCROLL_OF_STRENGTH, POTION_OF_STRENGTH -> strengthBoost;
+                default -> 0;
+            };
+        };
+        res += " " + subtype.getName();
+        return res;
     }
 
     @Override
@@ -46,12 +76,7 @@ public class Item {
         }
 
         Item item = (Item) obj;
-        return type == item.type && subtype == item.subtype &&
-                healthBoost.equals(item.healthBoost) &&
-                maxHealthBoost.equals(item.maxHealthBoost) &&
-                agilityBoost.equals(item.agilityBoost) &&
-                strengthBoost.equals(item.strengthBoost) &&
-                price.equals(item.price);
+        return item.getType() == type && item.getSubtype() == subtype;
     }
 
     public ItemType getType() {
