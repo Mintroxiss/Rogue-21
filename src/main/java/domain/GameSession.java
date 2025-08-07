@@ -6,8 +6,8 @@ import domain.items.ItemType;
 import domain.positions.MovablePosition;
 
 public class GameSession {
-    public final int ROW_NUM = 20;
-    public final int COLUMN_NUM = 80;
+    public final int ROWS = 22;
+    public final int COLUMNS = 80;
 
     private Integer levelNum = 1;
     private boolean fieldUpdating = false;
@@ -15,8 +15,8 @@ public class GameSession {
     private GameSessionMode gameSessionMode = GameSessionMode.GAME_FIELD;
     private InventoryMode inventoryMode = InventoryMode.NOTHING;
 
-    private final Hero hero = new Hero(new MovablePosition(COLUMN_NUM / 2, ROW_NUM / 2), null);
-    private Level level = new Level(ROW_NUM, COLUMN_NUM, levelNum, hero);
+    private final Hero hero = new Hero(new MovablePosition(COLUMNS / 2, ROWS / 2), null, null);
+    private Level level = new Level(ROWS, COLUMNS, levelNum, hero);
     private String notification = null;
 
     public TileType[][] getGameField() {
@@ -61,7 +61,6 @@ public class GameSession {
                     try {
                         int num = Integer.parseInt(command);
                         if (hero.useFood(num)) {
-                            // TODO вывод сообщения о неудачи
                             gameSessionMode = GameSessionMode.GAME_FIELD;
                             inventoryMode = InventoryMode.NOTHING;
                         }
@@ -72,21 +71,40 @@ public class GameSession {
                 yield true;
             }
             case USE_POTION -> {
+                switch (command) {
+                    case "k" -> {
+                        gameSessionMode = GameSessionMode.GAME_FIELD;
+                        inventoryMode = InventoryMode.NOTHING;
+                    }
+                    default -> {
+                        try {
+                            int num = Integer.parseInt(command);
+                            if (!hero.usePotion(num)) {
+                                notification = "This effect has not ended";
+                            }
+                            gameSessionMode = GameSessionMode.GAME_FIELD;
+                            inventoryMode = InventoryMode.NOTHING;
+                        } catch (Exception _) {
+                        }
+                    }
+                }
                 yield true;
             }
             case USE_SCROLL -> {
-                if (command.equals("e")) {
-                    gameSessionMode = GameSessionMode.GAME_FIELD;
-                    inventoryMode = InventoryMode.NOTHING;
-                } else {
-                    try {
-                        int num = Integer.parseInt(command);
-                        if (hero.useScroll(num)) {
-                            // TODO вывод сообщения о неудачи
-                            gameSessionMode = GameSessionMode.GAME_FIELD;
-                            inventoryMode = InventoryMode.NOTHING;
+                switch (command) {
+                    case "e" -> {
+                        gameSessionMode = GameSessionMode.GAME_FIELD;
+                        inventoryMode = InventoryMode.NOTHING;
+                    }
+                    default -> {
+                        try {
+                            int num = Integer.parseInt(command);
+                            if (hero.useScroll(num)) {
+                                gameSessionMode = GameSessionMode.GAME_FIELD;
+                                inventoryMode = InventoryMode.NOTHING;
+                            }
+                        } catch (Exception _) {
                         }
-                    } catch (Exception _) {
                     }
                 }
                 yield true;
@@ -97,23 +115,74 @@ public class GameSession {
                 yield true;
             }
             case THROW_AWAY_ITEM -> {
-                if (command.equals("t")) {
-                    gameSessionMode = GameSessionMode.GAME_FIELD;
-                    inventoryMode = InventoryMode.NOTHING;
-                } else {
-                    try {
-                        int num = Integer.parseInt(command);
-                        if (level.heroThrowAwayItem(hero, num)) {
-                            // TODO вывод сообщения о неудачи
+                switch (command) {
+                    case "t" -> {
+                        gameSessionMode = GameSessionMode.GAME_FIELD;
+                        inventoryMode = InventoryMode.NOTHING;
+                    }
+                    case "-" -> {
+                        if (level.heroThrowAwayEquippedArmor(hero)) {
                             gameSessionMode = GameSessionMode.GAME_FIELD;
                             inventoryMode = InventoryMode.NOTHING;
                         }
-                    } catch (Exception _) {
+                    }
+                    case "=" -> {
+
+                        if (level.heroThrowAwayEquippedWeapon(hero)) {
+                            gameSessionMode = GameSessionMode.GAME_FIELD;
+                            inventoryMode = InventoryMode.NOTHING;
+                        }
+                    }
+                    default -> {
+                        try {
+                            int num = Integer.parseInt(command);
+                            if (level.heroThrowAwayItem(hero, num)) {
+                                // TODO вывод сообщения о неудачи
+                                gameSessionMode = GameSessionMode.GAME_FIELD;
+                                inventoryMode = InventoryMode.NOTHING;
+                            }
+                        } catch (Exception _) {
+                        }
                     }
                 }
                 yield true;
             }
             case EQUIP_WEAPON -> {
+                switch (command) {
+                    case "h", "=" -> {
+                        gameSessionMode = GameSessionMode.GAME_FIELD;
+                        inventoryMode = InventoryMode.NOTHING;
+                    }
+                    default -> {
+                        try {
+                            int num = Integer.parseInt(command);
+                            if (hero.equipWeaponFromInventory(num)) {
+                                gameSessionMode = GameSessionMode.GAME_FIELD;
+                                inventoryMode = InventoryMode.NOTHING;
+                            }
+                        } catch (Exception _) {
+                        }
+                    }
+                }
+                yield true;
+            }
+            case EQUIP_ARMOR -> {
+                switch (command) {
+                    case "y", "-" -> {
+                        gameSessionMode = GameSessionMode.GAME_FIELD;
+                        inventoryMode = InventoryMode.NOTHING;
+                    }
+                    default -> {
+                        try {
+                            int num = Integer.parseInt(command);
+                            if (hero.equipArmorFromInventory(num)) {
+                                gameSessionMode = GameSessionMode.GAME_FIELD;
+                                inventoryMode = InventoryMode.NOTHING;
+                            }
+                        } catch (Exception _) {
+                        }
+                    }
+                }
                 yield true;
             }
             case NOTHING -> throw new IllegalArgumentException("Inventory mod not installed");
@@ -124,13 +193,15 @@ public class GameSession {
     }
 
     private void executeGameFieldCommand(String command) {
+        if (command == null) return;
+
         fieldUpdating = switch (command) {
             case "w" -> level.heroMoveUp(hero);
             case "d" -> level.heroMoveRight(hero);
             case "s" -> level.heroMoveDown(hero);
             case "a" -> level.heroMoveLeft(hero);
             case "i" -> {
-                hero.createInventoryField(null, ROW_NUM, COLUMN_NUM);
+                hero.createInventoryField(null, ROWS, COLUMNS);
                 gameSessionMode = GameSessionMode.INVENTORY;
                 inventoryMode = InventoryMode.SHOW_ITEMS;
                 yield true;
@@ -139,15 +210,15 @@ public class GameSession {
                 if (level.cellWithHeroHasItem(hero.getPos())) {
                     notification = "Floor is occupied";
                 } else {
-                    hero.createInventoryField(null, ROW_NUM, COLUMN_NUM);
+                    hero.createInventoryField(null, ROWS, COLUMNS);
                     gameSessionMode = GameSessionMode.INVENTORY;
                     inventoryMode = InventoryMode.THROW_AWAY_ITEM;
                 }
                 yield true;
             }
             case "j" -> {
-                if (hero.getHealth() < hero.getMaxHealth()) {
-                    hero.createInventoryField(ItemType.FOOD, ROW_NUM, COLUMN_NUM);
+                if (hero.getHealth() < hero.getTotalMaxHealth()) {
+                    hero.createInventoryField(ItemType.FOOD, ROWS, COLUMNS);
                     gameSessionMode = GameSessionMode.INVENTORY;
                     inventoryMode = InventoryMode.USE_FOOD;
                 } else {
@@ -156,9 +227,35 @@ public class GameSession {
                 yield true;
             }
             case "e" -> {
-                hero.createInventoryField(ItemType.SCROLL, ROW_NUM, COLUMN_NUM);
+                hero.createInventoryField(ItemType.SCROLL, ROWS, COLUMNS);
                 gameSessionMode = GameSessionMode.INVENTORY;
                 inventoryMode = InventoryMode.USE_SCROLL;
+                yield true;
+            }
+            case "h" -> {
+                if (level.swapEquippedWeaponForLyingWeapon(hero)) {
+                    notification = level.getNotification();
+                } else {
+                    hero.createInventoryField(ItemType.WEAPON, ROWS, COLUMNS);
+                    gameSessionMode = GameSessionMode.INVENTORY;
+                    inventoryMode = InventoryMode.EQUIP_WEAPON;
+                }
+                yield true;
+            }
+            case "y" -> {
+                if (level.swapEquippedArmorForLyingArmor(hero)) {
+                    notification = level.getNotification();
+                } else {
+                    hero.createInventoryField(ItemType.ARMOR, ROWS, COLUMNS);
+                    gameSessionMode = GameSessionMode.INVENTORY;
+                    inventoryMode = InventoryMode.EQUIP_ARMOR;
+                }
+                yield true;
+            }
+            case "k" -> {
+                hero.createInventoryField(ItemType.POTION, ROWS, COLUMNS);
+                gameSessionMode = GameSessionMode.INVENTORY;
+                inventoryMode = InventoryMode.USE_POTION;
                 yield true;
             }
 
@@ -175,7 +272,7 @@ public class GameSession {
 
     private void nextLevel() {
         levelNum++;
-        level = new Level(ROW_NUM, COLUMN_NUM, levelNum, hero);
+        level = new Level(ROWS, COLUMNS, levelNum, hero);
     }
 
     public String getNotification() {
@@ -187,9 +284,9 @@ public class GameSession {
     public String[] getGameInfo() {
         return new String[]{
                 "Level:" + levelNum,
-                "HP:" + hero.getHealth() + "(" + hero.getMaxHealth() + ")",
-                "Str:" + hero.getStrength(),
-                "Ag:" + hero.getAgility(),
+                "HP:" + hero.getHealth() + "(" + hero.getTotalMaxHealth() + ")",
+                "Str:" + hero.getTotalStrength(),
+                "Ag:" + hero.getTotalAgility(),
                 "Gold:",
         };
     }

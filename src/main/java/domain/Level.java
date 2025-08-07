@@ -13,15 +13,15 @@ import domain.positions.MovablePosition;
 public class Level {
     private final int ROW_NUM;
     private final int COLUMN_NUM;
-    private Cell[][] gameField;
+    private final Cell[][] gameField;
 
     private String notification = null;
 
     private boolean passed = false;
 
-    public Level(int rowNum, int columnNum, int levelNum, Creature hero) {
-        this.ROW_NUM = rowNum;
-        this.COLUMN_NUM = columnNum;
+    public Level(int ROWS, int COLUMNS, int levelNum, Creature hero) {
+        this.ROW_NUM = ROWS;
+        this.COLUMN_NUM = COLUMNS;
         this.gameField = generateGameField(levelNum, hero);
     }
 
@@ -39,47 +39,85 @@ public class Level {
         for (int i = 0; i < 6; i++) {
             gameField[12][i + 12] = new Cell(new Tile(false, TileType.WALL));
         }
-        gameField[2][4].setItem(new Item(ItemType.ARMOR, ItemSubtype.BANDED_MAIL, 1));
+        gameField[2][4].setItem(new Item(ItemType.WEAPON, ItemSubtype.LONG_SWORD, 1));
+        gameField[2][5].setItem(new Item(ItemType.WEAPON, ItemSubtype.MACE, 1));
+        gameField[2][6].setItem(new Item(ItemType.WEAPON, ItemSubtype.LONG_SWORD, 1));
+
         return gameField;
     }
 
-    public boolean heroMoveUp(Creature hero) {
+    public boolean swapEquippedWeaponForLyingWeapon(Hero hero) {
+        boolean res = false;
+        Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        if (cell.getItem() != null) {
+            Item item = cell.getItem();
+            if (item.getType() == ItemType.WEAPON) {
+                cell.setItem(hero.getEquippedWeapon());
+                hero.setEquippedWeapon(item);
+                notification = "+" + item.getStrengthBoost() + " " + item.getSubtype().getName() + " equipped";
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    public boolean swapEquippedArmorForLyingArmor(Hero hero) {
+        boolean res = false;
+        Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        if (cell.getItem() != null) {
+            Item item = cell.getItem();
+            if (item.getType() == ItemType.ARMOR) {
+                cell.setItem(hero.getEquippedArmor());
+                hero.setEquippedArmor(item);
+                notification = "+" + item.getAgilityBoost() + " " + item.getSubtype().getName() + " equipped";
+                res = true;
+            }
+        }
+        return res;
+    }
+
+    public boolean heroMoveUp(Hero hero) {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(pos, pos.getX(), pos.getY() - 1);
+        boolean res = heroMove(hero, pos.getX(), pos.getY() - 1);
         if (res) {
             hero.getPos().moveUp();
+            hero.decreasePotionDurations();
         }
         return res;
     }
 
-    public boolean heroMoveDown(Creature hero) {
+    public boolean heroMoveDown(Hero hero) {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(pos, pos.getX(), pos.getY() + 1);
+        boolean res = heroMove(hero, pos.getX(), pos.getY() + 1);
         if (res) {
             hero.getPos().moveDown();
+            hero.decreasePotionDurations();
         }
         return res;
     }
 
-    public boolean heroMoveLeft(Creature hero) {
+    public boolean heroMoveLeft(Hero hero) {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(pos, pos.getX() - 1, pos.getY());
+        boolean res = heroMove(hero, pos.getX() - 1, pos.getY());
         if (res) {
             hero.getPos().moveLeft();
+            hero.decreasePotionDurations();
         }
         return res;
     }
 
-    public boolean heroMoveRight(Creature hero) {
+    public boolean heroMoveRight(Hero hero) {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(pos, pos.getX() + 1, pos.getY());
+        boolean res = heroMove(hero, pos.getX() + 1, pos.getY());
         if (res) {
             hero.getPos().moveRight();
+            hero.decreasePotionDurations();
         }
         return res;
     }
 
-    private boolean heroMove(MovablePosition pos, int newX, int newY) {
+    private boolean heroMove(Hero hero, int newX, int newY) {
+        MovablePosition pos = hero.getPos();
         if (newY < 0 || newY >= ROW_NUM || newX < 0 || newX >= COLUMN_NUM) {
             return false;
         }
@@ -90,12 +128,21 @@ public class Level {
         }
         if (newCell.getBase().getWalkable()) {
             Cell oldCell = gameField[pos.getY()][pos.getX()];
-            Hero hero = (Hero) oldCell.getCreature();
             Item item = newCell.getItem();
             if (item != null) {
                 if (hero.putItemIntoInventory(newCell.getItem())) {
                     notification = "Picked up " + item.getCount() + " " + item.getSubtype().getName();
                     newCell.setItem(null);
+                } else if (item.getType() == ItemType.ARMOR) {
+                    Item heroArmor = hero.getEquippedArmor();
+                    notification = "Do you want to change +" + heroArmor.getAgilityBoost() + " " +
+                            heroArmor.getSubtype().getName() + " to +" + item.getAgilityBoost() + " " +
+                            item.getSubtype().getName() + "?";
+                } else if (item.getType() == ItemType.WEAPON) {
+                    Item heroWeapon = hero.getEquippedWeapon();
+                    notification = "Do you want to change +" + heroWeapon.getStrengthBoost() + " " +
+                            heroWeapon.getSubtype().getName() + " to +" + item.getStrengthBoost() + " " +
+                            item.getSubtype().getName() + "?";
                 } else {
                     notification = "Inventory is full";
                 }
@@ -106,6 +153,36 @@ public class Level {
             return true;
         }
         return false;
+    }
+
+    public boolean heroThrowAwayEquippedWeapon(Hero hero) {
+        boolean res = false;
+        Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        Item item = hero.throwAwayEquippedWeapon();
+        if (cellWithHero.getItem() == null) {
+            if (item != null) {
+                cellWithHero.setItem(item);
+                res = true;
+            }
+        } else {
+            hero.setEquippedWeapon(item);
+        }
+        return res;
+    }
+
+    public boolean heroThrowAwayEquippedArmor(Hero hero) {
+        boolean res = false;
+        Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        Item item = hero.throwAwayEquippedArmor();
+        if (cellWithHero.getItem() == null) {
+            if (item != null) {
+                cellWithHero.setItem(item);
+                res = true;
+            }
+        } else {
+            hero.setEquippedArmor(item);
+        }
+        return res;
     }
 
     public boolean heroThrowAwayItem(Hero hero, int num) {

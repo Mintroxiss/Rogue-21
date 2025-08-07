@@ -17,7 +17,7 @@ public class Main {
         GameSession gameSession = new GameSession();
 
         Screen screen = new DefaultTerminalFactory()
-                .setInitialTerminalSize(new TerminalSize(gameSession.COLUMN_NUM, gameSession.ROW_NUM + 6))
+                .setInitialTerminalSize(new TerminalSize(gameSession.COLUMNS, gameSession.ROWS + 6))
                 .createScreen();
 
         screen.startScreen();
@@ -52,14 +52,14 @@ public class Main {
 
     private static void addGameInfoInScreen(TextGraphics graphics, GameSession gameSession) {
         String[] gameInfo = gameSession.getGameInfo();
-        for (int i = 0; i < gameSession.COLUMN_NUM; i++) {
-            graphics.setCharacter(i, gameSession.ROW_NUM + 4, ' ');
+        for (int i = 0; i < gameSession.COLUMNS; i++) {
+            graphics.setCharacter(i, gameSession.ROWS + 4, ' ');
         }
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
         int index = 0;
         for (String s : gameInfo) {
             for (int j = 0; j < s.length(); j++) {
-                graphics.setCharacter(index, gameSession.ROW_NUM + 4, s.charAt(j));
+                graphics.setCharacter(index, gameSession.ROWS + 4, s.charAt(j));
                 index++;
             }
             index += 3;
@@ -73,7 +73,7 @@ public class Main {
         if (notification != null) {
             clearNotificationInScreen(graphics, offset, gameSession, row);
             graphics.setForegroundColor(TextColor.ANSI.WHITE);
-            for (int i = offset; i < gameSession.COLUMN_NUM && i - offset < notification.length(); i++) {
+            for (int i = offset; i < gameSession.COLUMNS && i - offset < notification.length(); i++) {
                 graphics.setCharacter(i, row, notification.charAt(i - offset));
             }
         } else {
@@ -88,7 +88,7 @@ public class Main {
             int row
     ) {
         if (!graphics.getCharacter(offset, 1).is(' ')) {
-            for (int i = 0; i < gameSession.COLUMN_NUM; i++) {
+            for (int i = 0; i < gameSession.COLUMNS; i++) {
                 graphics.setCharacter(i, row, ' ');
             }
         }
@@ -122,8 +122,8 @@ public class Main {
     private static void addInventoryFieldInScreen(TextGraphics graphics, GameSession gameSession) {
         char[][] inventoryField = gameSession.getInventoryField();
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
-        for (int i = 0; i < gameSession.ROW_NUM; i++) {
-            for (int j = 0; j < gameSession.COLUMN_NUM; j++) {
+        for (int i = 0; i < gameSession.ROWS; i++) {
+            for (int j = 0; j < gameSession.COLUMNS; j++) {
                 graphics.setCharacter(j, i + 3, inventoryField[i][j]);
             }
         }
@@ -131,8 +131,8 @@ public class Main {
 
     private static void addGameFieldInScreen(TextGraphics graphics, GameSession gameSession) {
         TileType[][] gameField = gameSession.getGameField();
-        for (int i = 0; i < gameSession.ROW_NUM; i++) {
-            for (int j = 0; j < gameSession.COLUMN_NUM; j++) {
+        for (int i = 0; i < gameSession.ROWS; i++) {
+            for (int j = 0; j < gameSession.COLUMNS; j++) {
                 TextColor.ANSI color = switch (gameField[i][j]) {
                     case HERO -> TextColor.ANSI.YELLOW;
                     case OGRE, GHOST, ZOMBIE, VAMPIRE, SNAKE_MAGE -> TextColor.ANSI.RED;
@@ -145,7 +145,7 @@ public class Main {
                     case ITEM -> '(';
                     case DOOR -> '▋';
                     case WALL -> '█';
-                    case FLOOR, DOORWAY -> '▪';
+                    case FLOOR, DOORWAY -> '.'; //▪
                     case HERO -> '@';
                     case OGRE -> 'O';
                     case GHOST -> 'G';

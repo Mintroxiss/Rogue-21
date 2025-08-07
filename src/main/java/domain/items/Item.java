@@ -48,8 +48,11 @@ public class Item {
      * @return информация о предмете
      */
     public String getDescription() {
-        String res = count + " +";
-        res += switch (type) {
+        String res = "";
+        if (count > 1) {
+            res += count + " ";
+        }
+        res += "+" + switch (type) {
             case WEAPON -> strengthBoost;
             case ARMOR -> agilityBoost;
             case FOOD -> healthBoost;
@@ -60,8 +63,7 @@ public class Item {
                 case SCROLL_OF_STRENGTH, POTION_OF_STRENGTH -> strengthBoost;
                 default -> 0;
             };
-        };
-        res += " " + subtype.getName();
+        } + " " + subtype.getName();
         return res;
     }
 

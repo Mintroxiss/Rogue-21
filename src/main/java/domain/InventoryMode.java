@@ -7,6 +7,7 @@ public enum InventoryMode {
     SHOW_ITEMS("Inventory"),
     THROW_AWAY_ITEM("Throw away"),
     EQUIP_WEAPON("Equip weapon"),
+    EQUIP_ARMOR("Equip armor"),
     NOTHING("");
 
     private final String action;
