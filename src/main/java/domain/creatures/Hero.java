@@ -9,8 +9,6 @@ import domain.positions.MovablePosition;
 public class Hero extends Creature {
     private Integer maxHealth = 12;
 
-    private final Inventory inventory;
-
     private int strengthPotionBoost = 0;
     private int agilityPotionBoost = 0;
     private int maxHealthPotionBoost = 0;
@@ -18,6 +16,8 @@ public class Hero extends Creature {
     private int strengthPotionDuration = 0;
     private int agilityPotionDuration = 0;
     private int maxHealthPotionDuration = 0;
+
+    private final Inventory inventory;
 
     public Hero(MovablePosition pos, Item equippedWeapon, Item equippedArmor) {
         super(12, 5, 16, pos, TileType.HERO);
@@ -73,6 +73,10 @@ public class Hero extends Creature {
         }
 
         return res;
+    }
+
+    public Integer getGold() {
+        return inventory.getGold();
     }
 
     public int getTotalStrength() {

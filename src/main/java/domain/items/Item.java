@@ -109,6 +109,10 @@ public class Item {
         return price;
     }
 
+    public void setPrice(int price) {
+        this.price = price;
+    }
+
     public Integer getCount() {
         return count;
     }

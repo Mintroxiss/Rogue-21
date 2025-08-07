@@ -27,10 +27,12 @@ public enum ItemSubtype {
 
     // TREASURE
     GOLD_PIECE("Golden piece", generateTreasure(100)), GEM("Gem", generateTreasure(500)),
-    MAGIC_AMULET("Magic amulet", generateTreasure(1000));
+    MAGIC_AMULET("Magic amulet", generateTreasure(1000)),
+
+    TREASURES("Treasures", 0);
 
     private final String name;
-    private final int value;
+    private int value;
 
     ItemSubtype(String name, int value) {
         this.name = name;
@@ -51,5 +53,9 @@ public enum ItemSubtype {
 
     public int getValue() {
         return value;
+    }
+
+    public void setValue(int value) {
+        this.value = value;
     }
 }

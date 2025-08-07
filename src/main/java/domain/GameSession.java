@@ -287,7 +287,7 @@ public class GameSession {
                 "HP:" + hero.getHealth() + "(" + hero.getTotalMaxHealth() + ")",
                 "Str:" + hero.getTotalStrength(),
                 "Ag:" + hero.getTotalAgility(),
-                "Gold:",
+                "Gold:" + hero.getGold(),
         };
     }
 }

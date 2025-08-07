@@ -117,18 +117,54 @@ public class Inventory {
                     items.add(newItem);
                     res = true;
                 }
+            } else if (newItem.getType() == ItemType.TREASURE) {
+                Item treasuresItem = null;
+                for (Item item : items) {
+                    if (item.getSubtype() == ItemSubtype.TREASURES) {
+                        treasuresItem = item;
+                        break;
+                    }
+                }
+                if (treasuresItem != null) {
+                    treasuresItem.setPrice(treasuresItem.getPrice() + newItem.getPrice());
+                    res = true;
+                } else if (items.size() + 1 <= MAX_SIZE) {
+                    treasuresItem = new Item(ItemType.TREASURE, ItemSubtype.TREASURES, 1);
+                    treasuresItem.setPrice(newItem.getPrice());
+                    items.add(treasuresItem);
+                    res = true;
+                }
+
             } else {
+                boolean found = false;
                 for (Item item : items) {
                     if (item.equals(newItem)) {
                         item.setCount(item.getCount() + newItem.getCount());
                         res = true;
+                        found = true;
+                        break;
                     }
                 }
-                if (items.size() + 1 <= MAX_SIZE) {
+                if (!found && items.size() + 1 <= MAX_SIZE) {
                     items.add(newItem);
                     res = true;
                 }
             }
+        }
+        return res;
+    }
+
+    public int getGold() {
+        Item treasures = null;
+        for (Item item : items) {
+            if (item.getSubtype() == ItemSubtype.TREASURES) {
+                treasures = item;
+                break;
+            }
+        }
+        int res = 0;
+        if (treasures != null) {
+            res = treasures.getPrice();
         }
         return res;
     }

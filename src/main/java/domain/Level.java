@@ -39,9 +39,9 @@ public class Level {
         for (int i = 0; i < 6; i++) {
             gameField[12][i + 12] = new Cell(new Tile(false, TileType.WALL));
         }
-        gameField[2][4].setItem(new Item(ItemType.WEAPON, ItemSubtype.LONG_SWORD, 1));
-        gameField[2][5].setItem(new Item(ItemType.WEAPON, ItemSubtype.MACE, 1));
-        gameField[2][6].setItem(new Item(ItemType.WEAPON, ItemSubtype.LONG_SWORD, 1));
+        gameField[2][4].setItem(new Item(ItemType.TREASURE, ItemSubtype.GOLD_PIECE, 1));
+        gameField[2][5].setItem(new Item(ItemType.TREASURE, ItemSubtype.GEM, 1));
+        gameField[2][6].setItem(new Item(ItemType.TREASURE, ItemSubtype.MAGIC_AMULET, 1));
 
         return gameField;
     }
