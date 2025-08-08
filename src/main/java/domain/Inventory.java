@@ -8,8 +8,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class Inventory {
-    private final int MAX_SIZE = 9;
-    private final ArrayList<Item> items = initItems();
+    private final ArrayList<Item> items = GameGenerator.getFirstInventoryItems();
     private Item equippedWeapon;
     private Item equippedArmor;
 
@@ -49,19 +48,14 @@ public class Inventory {
         }
     }
 
-    public boolean isNotFull() {
-        return items.size() <= MAX_SIZE;
-    }
-
-
     /**
      * Возвращает требуемый предмет из инвентаря
      *
-     * @param number    индекс предмета в инвенторе
-     * @param type      тип обрабатываемых значений списка, null приемллем
+     * @param number    индекс предмета в инвентаре
+     * @param type      тип обрабатываемых значений списка (null - все)
      * @param isOnlyOne достать один предмет или все?
      * @return предмет, если он найден, иначе null
-     * @throws IndexOutOfBoundsException инвентрарь переполнен
+     * @throws IndexOutOfBoundsException инвентарь переполнен
      */
     public Item takeItem(int number, ItemType type, boolean isOnlyOne) {
         ArrayList<Item> items;
@@ -101,11 +95,12 @@ public class Inventory {
     public boolean putItem(Item newItem) {
         boolean res = false;
         if (newItem != null) {
+            int max_size = 9;
             if (newItem.getType() == ItemType.WEAPON) {
                 if (equippedWeapon == null) {
                     equippedWeapon = newItem;
                     res = true;
-                } else if (items.size() + 1 <= MAX_SIZE) {
+                } else if (items.size() + 1 <= max_size) {
                     items.add(newItem);
                     res = true;
                 }
@@ -113,7 +108,7 @@ public class Inventory {
                 if (equippedArmor == null) {
                     equippedArmor = newItem;
                     res = true;
-                } else if (items.size() + 1 <= MAX_SIZE) {
+                } else if (items.size() + 1 <= max_size) {
                     items.add(newItem);
                     res = true;
                 }
@@ -128,7 +123,7 @@ public class Inventory {
                 if (treasuresItem != null) {
                     treasuresItem.setPrice(treasuresItem.getPrice() + newItem.getPrice());
                     res = true;
-                } else if (items.size() + 1 <= MAX_SIZE) {
+                } else if (items.size() + 1 <= max_size) {
                     treasuresItem = new Item(ItemType.TREASURE, ItemSubtype.TREASURES, 1);
                     treasuresItem.setPrice(newItem.getPrice());
                     items.add(treasuresItem);
@@ -145,7 +140,7 @@ public class Inventory {
                         break;
                     }
                 }
-                if (!found && items.size() + 1 <= MAX_SIZE) {
+                if (!found && items.size() + 1 <= max_size) {
                     items.add(newItem);
                     res = true;
                 }
@@ -154,6 +149,9 @@ public class Inventory {
         return res;
     }
 
+    /**
+     * @return получить стоимость сокровищ в инвентаре
+     */
     public int getGold() {
         Item treasures = null;
         for (Item item : items) {
@@ -169,6 +167,13 @@ public class Inventory {
         return res;
     }
 
+    /**
+     * Создает поле с информацией о предметах из инвентаря
+     *
+     * @param type    тип предметов (null, если все)
+     * @param ROWS    количество строк в массиве
+     * @param COLUMNS количество столбцов в массиве
+     */
     public void createInventoryField(ItemType type, int ROWS, int COLUMNS) {
         inventoryField = new char[ROWS][COLUMNS];
         for (int i = 0; i < ROWS; i++) {
@@ -202,12 +207,11 @@ public class Inventory {
             }
         }
         int num = 1;
-        for (int i = 0; i < items.size(); i++) {
+        for (Item value : items) {
             int rowNum = row * 2;
 
             if (rowNum >= ROWS) break;
-            Item item = items.get(i);
-            String description = item.getDescription();
+            String description = value.getDescription();
             String prefix = " " + num + ") ";
             for (int j = 0; j < prefix.length() && j < COLUMNS; j++) {
                 inventoryField[rowNum][j] = prefix.charAt(j);
@@ -223,19 +227,5 @@ public class Inventory {
             num++;
             row++;
         }
-    }
-
-    private ArrayList<Item> initItems() {
-        ArrayList<Item> items = new ArrayList<>();
-        items.add(new Item(ItemType.FOOD, ItemSubtype.RAISIN_BREAD, 2));
-        items.add(new Item(ItemType.SCROLL, ItemSubtype.SCROLL_OF_DEXTERITY, 5));
-        items.add(new Item(ItemType.POTION, ItemSubtype.POTION_OF_VITALITY, 7));
-        items.add(new Item(ItemType.FOOD, ItemSubtype.SLIME_MOLD, 2));
-        items.add(new Item(ItemType.SCROLL, ItemSubtype.SCROLL_OF_VITALITY, 5));
-        items.add(new Item(ItemType.POTION, ItemSubtype.POTION_OF_STRENGTH, 7));
-        items.add(new Item(ItemType.FOOD, ItemSubtype.FOOD_RATION, 2));
-        items.add(new Item(ItemType.SCROLL, ItemSubtype.SCROLL_OF_STRENGTH, 5));
-        items.add(new Item(ItemType.POTION, ItemSubtype.POTION_OF_DEXTERITY, 7));
-        return items;
     }
 }

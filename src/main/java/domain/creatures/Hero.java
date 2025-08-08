@@ -24,6 +24,9 @@ public class Hero extends Creature {
         this.inventory = new Inventory(equippedWeapon, equippedArmor);
     }
 
+    /**
+     * Уменьшает время действия зелий на героя
+     */
     public void decreasePotionDurations() {
         if (isStrengthPotionEffect()) {
             strengthPotionDuration--;
@@ -39,6 +42,12 @@ public class Hero extends Creature {
         }
     }
 
+    /**
+     * Ищет зелье в инвентаре и применяет эффекты на героя
+     *
+     * @param num порядковый номер элемента в инвентаре
+     * @return true, если зелье найдено в инвентаре и применены его эффекты
+     */
     public boolean usePotion(int num) {
         boolean res = false;
         Item potion = inventory.takeItem(num, ItemType.POTION, true);
@@ -79,6 +88,9 @@ public class Hero extends Creature {
         return inventory.getGold();
     }
 
+    /**
+     * @return суммарная сила героя
+     */
     public int getTotalStrength() {
         int res = getStrength();
         Item weapon = inventory.getEquippedWeapon();
@@ -91,6 +103,9 @@ public class Hero extends Creature {
         return res;
     }
 
+    /**
+     * @return сумарная ловкость героя
+     */
     public int getTotalAgility() {
         int res = getAgility();
         Item armor = inventory.getEquippedArmor();
@@ -103,6 +118,9 @@ public class Hero extends Creature {
         return res;
     }
 
+    /**
+     * @return суммарное максимальное ХП героя
+     */
     public int getTotalMaxHealth() {
         int res = maxHealth;
         if (isMaxHealthPotionEffect()) {
@@ -111,10 +129,23 @@ public class Hero extends Creature {
         return res;
     }
 
+    /**
+     * Создает поле с информацией о предметах из инвентаря
+     *
+     * @param type    тип предметов (null, если все)
+     * @param ROWS    количество строк в массиве
+     * @param COLUMNS количество столбцов в массиве
+     */
     public void createInventoryField(ItemType type, int ROWS, int COLUMNS) {
         inventory.createInventoryField(type, ROWS, COLUMNS);
     }
 
+    /**
+     * Экипирует новое оружие героя из инвентаря, старое помещает в него
+     *
+     * @param num номер нового оружия в инвентаре
+     * @return true, если получилось экипировать оружие
+     */
     public boolean equipWeaponFromInventory(int num) {
         Item newWeapon = inventory.takeItem(num, ItemType.WEAPON, true);
         if (newWeapon == null) {
@@ -145,38 +176,76 @@ public class Hero extends Creature {
         return inventory.putItem(item);
     }
 
+    /**
+     * Выбрасывает предмет из инвентаря героя
+     *
+     * @param number номер предмета в инвентаре
+     * @return true, если предмет выброшен
+     */
     public Item throwAwayItem(int number) {
         return inventory.takeItem(number, null, false);
     }
 
+    /**
+     * Выбрасывает экипированное оружие
+     *
+     * @return разэкипированное оружие
+     */
     public Item throwAwayEquippedWeapon() {
         Item item = inventory.getEquippedWeapon();
         inventory.setEquippedWeapon(null);
         return item;
     }
 
+
+    /**
+     * @param item новое экипированное оружие героя
+     */
     public void setEquippedWeapon(Item item) {
         inventory.setEquippedWeapon(item);
     }
 
+
+    /**
+     * @param item новая экипированная броня героя
+     */
     public void setEquippedArmor(Item item) {
         inventory.setEquippedArmor(item);
     }
 
+
+    /**
+     * @return экипированное оружие героя
+     */
     public Item getEquippedWeapon() {
         return inventory.getEquippedWeapon();
     }
 
+    /**
+     * @return экипированная броня героя
+     */
     public Item getEquippedArmor() {
         return inventory.getEquippedArmor();
     }
 
+    /**
+     * Выбрасывает экипированную броню из инвентаря
+     *
+     * @return разэкипированная броня
+     */
     public Item throwAwayEquippedArmor() {
         Item item = inventory.getEquippedArmor();
         inventory.setEquippedArmor(null);
         return item;
     }
 
+
+    /**
+     * Ищет выбранную еду из инвентаря, после чего применяет её эффекты на героя
+     *
+     * @param num порядковый номер еды в инвентаре
+     * @return true, если предмет найден и эффекты применены
+     */
     public boolean useFood(int num) {
         boolean res = false;
         Item item = inventory.takeItem(num, ItemType.FOOD, true);
@@ -189,6 +258,12 @@ public class Hero extends Creature {
         return res;
     }
 
+    /**
+     * Ищет выбранный свиток из инвентаря, после чего применяет его эффекты на героя
+     *
+     * @param num порядковый номер свитка в инвентаре
+     * @return true, если предмет найден и эффекты применены
+     */
     public boolean useScroll(int num) {
         boolean res = false;
         Item item = inventory.takeItem(num, ItemType.SCROLL, true);

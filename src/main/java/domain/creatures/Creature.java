@@ -8,7 +8,7 @@ public abstract class Creature {
     private Integer health;
     private Integer agility;
     private Integer strength;
-    private final MovablePosition pos;
+    private MovablePosition pos;
     private final Tile tile;
 
     public Creature(Integer health, Integer agility, Integer strength, MovablePosition pos, TileType tileType) {
@@ -21,6 +21,10 @@ public abstract class Creature {
 
     public MovablePosition getPos() {
         return pos;
+    }
+
+    public void setPos(MovablePosition pos) {
+        this.pos = pos;
     }
 
     public boolean isLiving() {

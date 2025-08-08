@@ -13,7 +13,7 @@ public class Position {
         return x;
     }
 
-    protected void setX(int x) {
+    public void setX(int x) {
         this.x = x;
     }
 
@@ -21,7 +21,7 @@ public class Position {
         return y;
     }
 
-    protected void setY(int y) {
+    public void setY(int y) {
         this.y = y;
     }
 }

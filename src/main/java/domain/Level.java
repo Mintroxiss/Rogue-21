@@ -6,7 +6,6 @@ import domain.cells.TileType;
 import domain.creatures.Creature;
 import domain.creatures.Hero;
 import domain.items.Item;
-import domain.items.ItemSubtype;
 import domain.items.ItemType;
 import domain.positions.MovablePosition;
 
@@ -25,6 +24,11 @@ public class Level {
         this.gameField = generateGameField(levelNum, hero);
     }
 
+    /**
+     * @param levelNum номер уровня
+     * @param hero     герой
+     * @return игровое поле
+     */
     private Cell[][] generateGameField(int levelNum, Creature hero) { // TODO
         Cell[][] gameField = new Cell[ROW_NUM][COLUMN_NUM];
         for (int i = 0; i < ROW_NUM; i++) {
@@ -39,13 +43,17 @@ public class Level {
         for (int i = 0; i < 6; i++) {
             gameField[12][i + 12] = new Cell(new Tile(false, TileType.WALL));
         }
-        gameField[2][4].setItem(new Item(ItemType.TREASURE, ItemSubtype.GOLD_PIECE, 1));
-        gameField[2][5].setItem(new Item(ItemType.TREASURE, ItemSubtype.GEM, 1));
-        gameField[2][6].setItem(new Item(ItemType.TREASURE, ItemSubtype.MAGIC_AMULET, 1));
+
 
         return gameField;
     }
 
+    /**
+     * Кладёт оружие с поля в инвентарь героя, предыдущее оружие выбрасывает на место подбираемого
+     *
+     * @param hero герой
+     * @return получилось ли поменять оружие?
+     */
     public boolean swapEquippedWeaponForLyingWeapon(Hero hero) {
         boolean res = false;
         Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
@@ -61,6 +69,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Кладёт броню с поля в инвентарь героя, предыдущую броню выбрасывает на место подбираемой
+     *
+     * @param hero герой
+     * @return получилось ли поменять броню?
+     */
     public boolean swapEquippedArmorForLyingArmor(Hero hero) {
         boolean res = false;
         Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
@@ -76,6 +90,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Смещает героя вверх
+     *
+     * @param hero герой
+     * @return true, если герой сместился
+     */
     public boolean heroMoveUp(Hero hero) {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX(), pos.getY() - 1);
@@ -86,6 +106,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Смещает героя вниз
+     *
+     * @param hero герой
+     * @return true, если герой сместился
+     */
     public boolean heroMoveDown(Hero hero) {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX(), pos.getY() + 1);
@@ -96,6 +122,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Смещает героя влево
+     *
+     * @param hero герой
+     * @return true, если герой сместился
+     */
     public boolean heroMoveLeft(Hero hero) {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX() - 1, pos.getY());
@@ -106,6 +138,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Смещает героя вправо
+     *
+     * @param hero герой
+     * @return true, если герой сместился
+     */
     public boolean heroMoveRight(Hero hero) {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX() + 1, pos.getY());
@@ -116,6 +154,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Смещает героя
+     *
+     * @param hero герой
+     * @return true, если герой сместился
+     */
     private boolean heroMove(Hero hero, int newX, int newY) {
         MovablePosition pos = hero.getPos();
         if (newY < 0 || newY >= ROW_NUM || newX < 0 || newX >= COLUMN_NUM) {
@@ -155,6 +199,12 @@ public class Level {
         return false;
     }
 
+    /**
+     * Выбрасывает экипированное оружие
+     *
+     * @param hero герой
+     * @return true, если получилось выкинуть
+     */
     public boolean heroThrowAwayEquippedWeapon(Hero hero) {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
@@ -170,6 +220,12 @@ public class Level {
         return res;
     }
 
+    /**
+     * Выбрасывает экипированную броню
+     *
+     * @param hero герой
+     * @return true, если получилось выкинуть
+     */
     public boolean heroThrowAwayEquippedArmor(Hero hero) {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
@@ -185,6 +241,13 @@ public class Level {
         return res;
     }
 
+    /**
+     * Выбрасывает предмет из инвентаря
+     *
+     * @param hero герой
+     * @param num  номер предмета в инвентаре
+     * @return true, если получилось выкинуть
+     */
     public boolean heroThrowAwayItem(Hero hero, int num) {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
@@ -201,8 +264,6 @@ public class Level {
     }
 
     /**
-     * Возвращает игровое поле с типами плитки
-     *
      * @return игровое поле
      */
     public TileType[][] getTileTypeGameField() {

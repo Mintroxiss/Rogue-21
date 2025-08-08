@@ -51,6 +51,7 @@ public class Cell {
 
     /**
      * Возвращает плитку, находящуюся на вершине клетки
+     *
      * @return Верхняя плитка в клетке
      */
     public TileType getTopTileType() {
