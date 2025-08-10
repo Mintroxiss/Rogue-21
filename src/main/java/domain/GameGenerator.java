@@ -67,9 +67,9 @@ public class GameGenerator {
         ));
     }
 
-    private static final int mildHostility = 2;
-    private static final int averageHostility = 4;
-    private static final int highHostility = 8;
+    private static final int mildHostility = 4;
+    private static final int averageHostility = 6;
+    private static final int highHostility = 10;
 
     private static final ArrayList<Enemy> enemies = new ArrayList<>(Arrays.asList(
             new Enemy(EnemyType.ZOMBIE, TileType.ZOMBIE, averageHostility),
@@ -94,7 +94,7 @@ public class GameGenerator {
             enemy = new Enemy(enemies.getFirst());
             treasure = new Item(treasures.getFirst());
         } else if (levelNum < maxLevelNum / 2) {
-            enemy = new Enemy(enemies.get(getRandomInt(0, 2)));
+            enemy = new Enemy(enemies.get(getRandomInt(0, 2))); //TODO
             treasure = new Item(treasures.get(1));
         } else {
             enemy = new Enemy(enemies.get(getRandomInt(0, enemies.size() - 1)));
@@ -226,7 +226,7 @@ public class GameGenerator {
      * @param maxValue максимальное возможное число
      * @return рандомное число
      */
-    private static int getRandomInt(int minValue, int maxValue) {
+    public static int getRandomInt(int minValue, int maxValue) {
         return ThreadLocalRandom.current().nextInt(minValue, maxValue + 1);
     }
 }

@@ -17,11 +17,10 @@ public class Hero extends Creature {
     private int agilityPotionDuration = 0;
     private int maxHealthPotionDuration = 0;
 
-    private final Inventory inventory;
+    private final Inventory inventory = new Inventory();
 
-    public Hero(MovablePosition pos, Item equippedWeapon, Item equippedArmor) {
-        super(12, 5, 16, pos, TileType.HERO);
-        this.inventory = new Inventory(equippedWeapon, equippedArmor);
+    public Hero() {
+        super(12, 5, 16, null, TileType.HERO);
     }
 
     /**

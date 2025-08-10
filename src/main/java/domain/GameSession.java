@@ -15,7 +15,7 @@ public class GameSession {
     private GameSessionMode gameSessionMode = GameSessionMode.GAME_FIELD;
     private InventoryMode inventoryMode = InventoryMode.NOTHING;
 
-    private final Hero hero = new Hero(new MovablePosition(COLUMNS / 2, ROWS / 2), null, null);
+    private final Hero hero = new Hero();
     private Level level = new Level(ROWS, COLUMNS, levelNum, hero);
     private String notification = null;
 
@@ -126,6 +126,14 @@ public class GameSession {
                 gameSessionMode = GameSessionMode.INVENTORY;
                 inventoryMode = InventoryMode.USE_POTION;
                 yield true;
+            }
+            case "enter", "\n" -> {
+                boolean res = false;
+                if (level.cellWithHeroHasDoor(hero)) {
+                    nextLevel();
+                    res = true;
+                }
+                yield res;
             }
 
             default -> false;

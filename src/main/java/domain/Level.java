@@ -4,23 +4,27 @@ import domain.cells.Cell;
 import domain.cells.Tile;
 import domain.cells.TileType;
 import domain.creatures.Creature;
+import domain.creatures.Enemy;
 import domain.creatures.Hero;
 import domain.items.Item;
 import domain.items.ItemType;
 import domain.positions.MovablePosition;
 
+import java.util.ArrayList;
+
 public class Level {
-    private final int ROW_NUM;
-    private final int COLUMN_NUM;
+    private final int ROWS;
+    private final int COLUMNS;
     private final Cell[][] gameField;
+    private final ArrayList<Enemy> enemies = new ArrayList<>();
 
     private String notification = null;
 
     private boolean passed = false;
 
     public Level(int ROWS, int COLUMNS, int levelNum, Creature hero) {
-        this.ROW_NUM = ROWS;
-        this.COLUMN_NUM = COLUMNS;
+        this.ROWS = ROWS;
+        this.COLUMNS = COLUMNS;
         this.gameField = generateGameField(levelNum, hero);
     }
 
@@ -30,9 +34,10 @@ public class Level {
      * @return игровое поле
      */
     private Cell[][] generateGameField(int levelNum, Creature hero) { // TODO
-        Cell[][] gameField = new Cell[ROW_NUM][COLUMN_NUM];
-        for (int i = 0; i < ROW_NUM; i++) {
-            for (int j = 0; j < COLUMN_NUM; j++) {
+        Cell[][] gameField = new Cell[ROWS][COLUMNS];
+        hero.setPos(new MovablePosition(COLUMNS / 2, ROWS / 2));
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
                 Creature creature = null;
                 if (hero.getPos().getY() == i && hero.getPos().getX() == j) {
                     creature = hero;
@@ -43,8 +48,17 @@ public class Level {
         for (int i = 0; i < 6; i++) {
             gameField[12][i + 12] = new Cell(new Tile(false, TileType.WALL));
         }
+        gameField[20][20] = new Cell(new Tile(true, TileType.DOOR));
 
+        gameField[4][11] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
+        gameField[4][12] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
+        gameField[4][13] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
 
+        enemies.add(GameGenerator.generateEnemy(levelNum, 21, new MovablePosition(COLUMNS - 1, 0)));
+        gameField[0][COLUMNS - 1].setCreature(enemies.getLast());
+        for (int i = 0; i < 5; i++) {
+            gameField[i][COLUMNS - 12] = new Cell(new Tile(false, TileType.WALL));
+        }
         return gameField;
     }
 
@@ -107,6 +121,21 @@ public class Level {
     }
 
     /**
+     * Проверяет, находится ли герой у двери
+     *
+     * @param hero герой
+     * @return true, если герой стоит на клетке с дверью
+     */
+    public boolean cellWithHeroHasDoor(Hero hero) {
+        boolean res = false;
+        Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
+        if (cell.getBase().getTileType() == TileType.DOOR) {
+            res = true;
+        }
+        return res;
+    }
+
+    /**
      * Смещает героя вниз
      *
      * @param hero герой
@@ -155,14 +184,16 @@ public class Level {
     }
 
     /**
-     * Смещает героя
+     * Обрабатывает изменения на игровом поле при действии героя
      *
      * @param hero герой
      * @return true, если герой сместился
      */
     private boolean heroMove(Hero hero, int newX, int newY) {
+        boolean res = false;
+
         MovablePosition pos = hero.getPos();
-        if (newY < 0 || newY >= ROW_NUM || newX < 0 || newX >= COLUMN_NUM) {
+        if (newY < 0 || newY >= ROWS || newX < 0 || newX >= COLUMNS) {
             return false;
         }
         Cell newCell = gameField[newY][newX];
@@ -194,9 +225,12 @@ public class Level {
             }
             newCell.setCreature(hero);
             oldCell.setCreature(null);
-            return true;
+            for (Enemy enemy : enemies) {
+                enemy.move(hero.getPos(), gameField, ROWS, COLUMNS);
+            }
+            res = true;
         }
-        return false;
+        return res;
     }
 
     /**

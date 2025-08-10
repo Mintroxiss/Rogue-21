@@ -107,11 +107,11 @@ public class Main {
         } else {
             KeyType type = key.getKeyType();
             keyStr = switch (type) {
-                case ArrowUp -> null;
-                case ArrowDown -> null;
-                case ArrowLeft -> null;
-                case ArrowRight -> null;
-                case Enter -> null;
+                case ArrowUp -> "w";
+                case ArrowDown -> "s";
+                case ArrowLeft -> "a";
+                case ArrowRight -> "d";
+                case Enter -> "enter";
                 case Escape -> "esc";
                 default -> null;
             };
@@ -134,9 +134,12 @@ public class Main {
         for (int i = 0; i < gameSession.ROWS; i++) {
             for (int j = 0; j < gameSession.COLUMNS; j++) {
                 TextColor.ANSI color = switch (gameField[i][j]) {
-                    case HERO -> TextColor.ANSI.YELLOW;
-                    case OGRE, GHOST, ZOMBIE, VAMPIRE, SNAKE_MAGE -> TextColor.ANSI.RED;
-                    case DOOR -> TextColor.ANSI.GREEN;
+                    case HERO -> TextColor.ANSI.CYAN;
+                    case OGRE -> TextColor.ANSI.YELLOW;
+                    case ZOMBIE -> TextColor.ANSI.GREEN;
+                    case VAMPIRE -> TextColor.ANSI.RED;
+                    case DOOR -> TextColor.ANSI.GREEN_BRIGHT;
+                    case WALL, FLOOR, DOORWAY -> TextColor.ANSI.BLACK_BRIGHT;
                     default -> TextColor.ANSI.WHITE;
                 };
                 graphics.setForegroundColor(color);
@@ -145,7 +148,7 @@ public class Main {
                     case ITEM -> '(';
                     case DOOR -> '▋';
                     case WALL -> '█';
-                    case FLOOR, DOORWAY -> '.'; //▪
+                    case FLOOR, DOORWAY -> '.';
                     case HERO -> '@';
                     case OGRE -> 'O';
                     case GHOST -> 'G';

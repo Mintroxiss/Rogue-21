@@ -14,11 +14,6 @@ public class Inventory {
 
     private char[][] inventoryField;
 
-    public Inventory(Item equippedWeapon, Item equippedArmor) {
-        this.equippedArmor = equippedArmor;
-        this.equippedWeapon = equippedWeapon;
-    }
-
     public char[][] getInventoryField() {
         return inventoryField;
     }
