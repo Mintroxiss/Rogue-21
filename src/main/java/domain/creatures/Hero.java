@@ -1,10 +1,10 @@
 package domain.creatures;
 
+import domain.GameGenerator;
 import domain.Inventory;
 import domain.cells.TileType;
 import domain.items.Item;
 import domain.items.ItemType;
-import domain.positions.MovablePosition;
 
 public class Hero extends Creature {
     private Integer maxHealth = 12;
@@ -20,8 +20,36 @@ public class Hero extends Creature {
     private final Inventory inventory = new Inventory();
 
     public Hero() {
-        super(12, 5, 16, null, TileType.HERO);
+        super(12, 5, 16, null, TileType.HERO);  // TODO
     }
+
+    /**
+     * Рассчитывает урон героя
+     *
+     * @return количество урона
+     */
+    public int hitEnemy(int enemyAgility) {
+        int agilityDiff = this.getTotalAgility() - enemyAgility;
+        int chanceToHit = 50 + agilityDiff * 5;
+        chanceToHit = Math.max(5, Math.min(95, chanceToHit));
+        if (GameGenerator.getRandomInt(1, 100) <= chanceToHit) {
+            int damage = getTotalStrength();
+            Item weapon = inventory.getEquippedWeapon();
+            if (weapon != null) {
+                damage += switch (weapon.getSubtype()) {
+                    case DAGGER -> rollDice(1, 6);
+                    case MACE -> rollDice(2, 4);
+                    case TWO_HANDED_SWORD -> rollDice(4, 4);
+                    case LONG_SWORD -> rollDice(3, 4);
+                    default -> throw new IllegalArgumentException("Unacceptable type of weapon");
+                };
+            }
+            return damage / GameGenerator.getRandomInt(1, 4);
+        } else {
+            return 0;
+        }
+    }
+
 
     /**
      * Уменьшает время действия зелий на героя

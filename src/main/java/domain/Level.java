@@ -55,7 +55,9 @@ public class Level {
         gameField[4][13] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
 
         enemies.add(GameGenerator.generateEnemy(levelNum, 21, new MovablePosition(COLUMNS - 1, 0)));
-        gameField[0][COLUMNS - 1].setCreature(enemies.getLast());
+        enemies.add(GameGenerator.generateEnemy(levelNum, 21, new MovablePosition(COLUMNS - 6, 0)));
+        gameField[0][COLUMNS - 1].setCreature(enemies.get(0));
+        gameField[0][COLUMNS - 6].setCreature(enemies.getLast());
         for (int i = 0; i < 5; i++) {
             gameField[i][COLUMNS - 12] = new Cell(new Tile(false, TileType.WALL));
         }
@@ -114,7 +116,6 @@ public class Level {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX(), pos.getY() - 1);
         if (res) {
-            hero.getPos().moveUp();
             hero.decreasePotionDurations();
         }
         return res;
@@ -145,7 +146,6 @@ public class Level {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX(), pos.getY() + 1);
         if (res) {
-            hero.getPos().moveDown();
             hero.decreasePotionDurations();
         }
         return res;
@@ -161,7 +161,6 @@ public class Level {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX() - 1, pos.getY());
         if (res) {
-            hero.getPos().moveLeft();
             hero.decreasePotionDurations();
         }
         return res;
@@ -177,17 +176,16 @@ public class Level {
         MovablePosition pos = hero.getPos();
         boolean res = heroMove(hero, pos.getX() + 1, pos.getY());
         if (res) {
-            hero.getPos().moveRight();
             hero.decreasePotionDurations();
         }
         return res;
     }
 
     /**
-     * Обрабатывает изменения на игровом поле при действии героя
+     * Обрабатывает изменения на игровом поле при ходе героя
      *
      * @param hero герой
-     * @return true, если герой сместился
+     * @return true, если герой выполнил действие
      */
     private boolean heroMove(Hero hero, int newX, int newY) {
         boolean res = false;
@@ -197,11 +195,25 @@ public class Level {
             return false;
         }
         Cell newCell = gameField[newY][newX];
-        if (newCell.getCreature() != null) {
-            // TODO Логика атаки противника героем
-            return false;
-        }
-        if (newCell.getBase().getWalkable()) {
+        Enemy enemyTarget = (Enemy) newCell.getCreature();
+        if (enemyTarget != null) {
+            int damage = hero.hitEnemy(enemyTarget.getAgility());
+            if (damage == 0) {
+                notification = enemyTarget.getEnemyType().getName() + " dodged";
+            } else {
+                notification = enemyTarget.getEnemyType().getName() + " took " + damage + " damage";
+            }
+            enemyTarget.setHealth(enemyTarget.getHealth() - damage);
+            if (enemyTarget.isDied()) {
+                newCell.setCreature(null);
+                enemies.remove(enemyTarget);
+                notification += ", the creature is died";
+                if (newCell.getItem() == null) {
+                    newCell.setItem(enemyTarget.getRewardTreasure());
+                }
+            }
+            res = true;
+        } else if (newCell.getBase().getWalkable()) {
             Cell oldCell = gameField[pos.getY()][pos.getX()];
             Item item = newCell.getItem();
             if (item != null) {
@@ -221,14 +233,29 @@ public class Level {
                 } else {
                     notification = "Inventory is full";
                 }
-                // TODO Логика подбора предмета
             }
+            hero.setPos(new MovablePosition(newX, newY));
             newCell.setCreature(hero);
             oldCell.setCreature(null);
-            for (Enemy enemy : enemies) {
-                enemy.move(hero.getPos(), gameField, ROWS, COLUMNS);
-            }
             res = true;
+        }
+        if (res) {
+            for (Enemy enemy : enemies) {
+                Integer damage = enemy.move(hero, gameField, ROWS, COLUMNS);
+                if (damage != null) {
+                    if (notification == null) {
+                        notification = "";
+                    } else {
+                        notification += ", ";
+                    }
+                    if (damage == 0) {
+                        notification += enemy.getEnemyType().getName() + " missed";
+                    } else {
+                        notification += enemy.getEnemyType().getName() + " dealt " + damage + " damage";
+                    }
+                    hero.setHealth(hero.getHealth() - damage);
+                }
+            }
         }
         return res;
     }

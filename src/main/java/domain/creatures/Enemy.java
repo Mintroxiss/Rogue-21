@@ -44,6 +44,24 @@ public class Enemy extends Creature {
         );
     }
 
+    /**
+     * Рассчитывает урон противника
+     *
+     * @param heroAgility ловкость героя
+     * @return количество урона
+     */
+    public int hitHero(int heroAgility) {
+        int agilityDiff = agility - heroAgility;
+        int chanceToHit = 50 + agilityDiff * 5;
+        chanceToHit = Math.max(5, Math.min(95, chanceToHit));
+        if (GameGenerator.getRandomInt(1, 100) <= chanceToHit) {
+            return strength / GameGenerator.getRandomInt(1, 4);
+        } else {
+            return 0;
+        }
+    }
+
+
     public EnemyType getEnemyType() {
         return enemyType;
     }
@@ -63,19 +81,21 @@ public class Enemy extends Creature {
     /**
      * Обрабатывает логику перемещения противника
      *
-     * @param heroPos   позция героя
+     * @param hero герой
      * @param gameField игровое поле
      * @param ROWS      количество строк поля
      * @param COLUMNS   количество столбцов поля
+     * @return возвращает урон по герою, null если не бьёт
      */
-    public void move(MovablePosition heroPos, Cell[][] gameField, int ROWS, int COLUMNS) {
+    public Integer move(Hero hero, Cell[][] gameField, int ROWS, int COLUMNS) {
         int oldX = getPos().getX();
         int oldY = getPos().getY();
         Cell enemyCell = gameField[oldY][oldX];
-        int distanceX = oldX - heroPos.getX();
-        int distanceY = oldY - heroPos.getY();
+        int distanceX = oldX - hero.getPos().getX();
+        int distanceY = oldY - hero.getPos().getY();
         MovablePosition newPos = new MovablePosition(oldX, oldY);
-        if (Math.abs(distanceX) < hostility + 2 && Math.abs(distanceY) < hostility + 2 && hasNotObstacleBetweenEnemyAndHero(newPos, distanceX, distanceY, gameField)) {
+        if (Math.abs(distanceX) < hostility + 2 && Math.abs(distanceY) < hostility + 2
+                && hasNotObstacleBetweenEnemyAndHero(newPos, distanceX, distanceY, gameField)) {
             if (Math.abs(distanceX) >= Math.abs(distanceY)) {
                 if (distanceX > 0 && gameField[newPos.getY()][newPos.getX() - 1].getBase().getWalkable()) {
                     newPos.moveLeft();
@@ -92,10 +112,16 @@ public class Enemy extends Creature {
         } else {
             walk(newPos, oldX, oldY, gameField, ROWS, COLUMNS);
         }
+        Integer damage = null;
         Enemy enemy = (Enemy) enemyCell.getCreature();
-        enemyCell.setCreature(null);
-        enemy.setPos(newPos);
-        gameField[newPos.getY()][newPos.getX()].setCreature(enemy);
+        if (newPos.getX() == hero.getPos().getX() && newPos.getY() == hero.getPos().getY()) {
+            damage = hitHero(hero.getTotalAgility());
+        } else if (gameField[newPos.getY()][newPos.getX()].getCreature() == null) {
+            enemyCell.setCreature(null);
+            enemy.setPos(newPos);
+            gameField[newPos.getY()][newPos.getX()].setCreature(enemy);
+        }
+        return damage;
     }
 
     /**
@@ -207,18 +233,15 @@ public class Enemy extends Creature {
             }
             case GHOST -> {
                 boolean fl = true;
-                java.util.concurrent.ThreadLocalRandom rnd = java.util.concurrent.ThreadLocalRandom.current();
-
                 while (fl) {
-                    // 50% шанс просто стоять
-                    if (rnd.nextDouble() < 0.6) {
+                    if (GameGenerator.getRandomDouble() < 0.6) {
                         newPos.setX(oldX);
                         newPos.setY(oldY);
                         break; // сразу выходим
                     }
                     // Смещения от -3 до 3
-                    int offsetX = rnd.nextInt(-3, 4);
-                    int offsetY = rnd.nextInt(-3, 4);
+                    int offsetX = GameGenerator.getRandomInt(-3, 3);
+                    int offsetY = GameGenerator.getRandomInt(-3, 3);
                     // Пропускаем вариант "остаться на месте"
                     if (offsetX == 0 && offsetY == 0) continue;
                     int newX = oldX + offsetX;
@@ -288,6 +311,16 @@ public class Enemy extends Creature {
         }
     }
 
+    /**
+     * Проверяет, может ли призрак телепортироваться из начальной позиции в конечную
+     *
+     * @param startX    первоначальное значение X
+     * @param startY    первоначальное значение Y
+     * @param endX      конечное значение X
+     * @param endY      конечное значение Y
+     * @param gameField игровое поле
+     * @return true, если перемещение возможно
+     */
     private boolean ghostPathIsClear(int startX, int startY, int endX, int endY, Cell[][] gameField) {
         int dx = Math.abs(endX - startX);
         int dy = Math.abs(endY - startY);

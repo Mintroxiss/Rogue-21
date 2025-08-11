@@ -94,7 +94,7 @@ public class GameGenerator {
             enemy = new Enemy(enemies.getFirst());
             treasure = new Item(treasures.getFirst());
         } else if (levelNum < maxLevelNum / 2) {
-            enemy = new Enemy(enemies.get(getRandomInt(0, 2))); //TODO
+            enemy = new Enemy(enemies.get(getRandomInt(0, 2)));
             treasure = new Item(treasures.get(1));
         } else {
             enemy = new Enemy(enemies.get(getRandomInt(0, enemies.size() - 1)));
@@ -130,6 +130,13 @@ public class GameGenerator {
             }
             default -> throw new IllegalArgumentException("No value added for EnemyType");
         }
+        int value = switch (treasure.getSubtype()) {
+            case GOLD_PIECE -> getRandomInt(1, 100);
+            case GEM -> getRandomInt(250, 500);
+            case MAGIC_AMULET -> getRandomInt(1000, 2000);
+            default -> throw new IllegalArgumentException("Impossible treasure subtype");
+        };
+        treasure.setValue(value);
         enemy.setRewardTreasure(treasure);
         enemy.setHealth(health);
         enemy.setAgility(agility);
@@ -228,5 +235,12 @@ public class GameGenerator {
      */
     public static int getRandomInt(int minValue, int maxValue) {
         return ThreadLocalRandom.current().nextInt(minValue, maxValue + 1);
+    }
+
+    /**
+     * @return рандомное вещественное число от 0 до 1
+     */
+    public static double getRandomDouble() {
+        return ThreadLocalRandom.current().nextDouble();
     }
 }

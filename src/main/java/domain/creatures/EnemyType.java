@@ -1,9 +1,19 @@
 package domain.creatures;
 
 public enum EnemyType {
-    ZOMBIE,
-    VAMPIRE,
-    GHOST,
-    OGRE,
-    SNAKE_MAGE
+    ZOMBIE("Zombie"),
+    VAMPIRE("Vampire"),
+    GHOST("Ghost"),
+    OGRE("Ogre"),
+    SNAKE_MAGE("Snake Mage");
+
+    private final String name;
+
+    EnemyType(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 }

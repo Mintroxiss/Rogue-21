@@ -1,15 +1,16 @@
 package domain.creatures;
 
+import domain.GameGenerator;
 import domain.cells.Tile;
 import domain.cells.TileType;
 import domain.positions.MovablePosition;
 
 public abstract class Creature {
-    private Integer health;
-    private Integer agility;
-    private Integer strength;
-    private MovablePosition pos;
-    private final Tile tile;
+    protected Integer health;
+    protected Integer agility;
+    protected Integer strength;
+    protected MovablePosition pos;
+    protected final Tile tile;
 
     public Creature(Integer health, Integer agility, Integer strength, MovablePosition pos, TileType tileType) {
         this.health = health;
@@ -27,8 +28,8 @@ public abstract class Creature {
         this.pos = pos;
     }
 
-    public boolean isLiving() {
-        return health > 0;
+    public boolean isDied() {
+        return health <= 0;
     }
 
     public Integer getAgility() {
@@ -57,5 +58,20 @@ public abstract class Creature {
 
     public Tile getTile() {
         return tile;
+    }
+
+    /**
+     * Рассчитывает урон по логике броска кубика
+     *
+     * @param count количество бросков
+     * @param sides количество сторон
+     * @return урон
+     */
+    protected int rollDice(int count, int sides) {
+        int sum = 0;
+        for (int i = 0; i < count; i++) {
+            sum += GameGenerator.getRandomInt(1, sides);
+        }
+        return sum;
     }
 }
