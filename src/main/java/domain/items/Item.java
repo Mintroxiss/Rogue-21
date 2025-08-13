@@ -34,14 +34,6 @@ public class Item {
     }
 
     public Item(
-            ItemType type,
-            ItemSubtype subtype,
-            int count
-    ) {
-        this(type, subtype, 0, count);
-    }
-
-    public Item(
             int value,
             ItemType type,
             ItemSubtype subtype

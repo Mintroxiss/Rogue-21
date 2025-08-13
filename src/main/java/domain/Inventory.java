@@ -119,7 +119,7 @@ public class Inventory {
                     treasuresItem.setPrice(treasuresItem.getPrice() + newItem.getPrice());
                     res = true;
                 } else if (items.size() + 1 <= max_size) {
-                    treasuresItem = new Item(ItemType.TREASURE, ItemSubtype.TREASURES, 1);
+                    treasuresItem = new Item(ItemType.TREASURE, ItemSubtype.TREASURES);
                     treasuresItem.setPrice(newItem.getPrice());
                     items.add(treasuresItem);
                     res = true;

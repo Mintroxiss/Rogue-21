@@ -5,6 +5,7 @@ import domain.cells.Tile;
 import domain.cells.TileType;
 import domain.creatures.Creature;
 import domain.creatures.Enemy;
+import domain.creatures.EnemyType;
 import domain.creatures.Hero;
 import domain.items.Item;
 import domain.items.ItemType;
@@ -54,9 +55,9 @@ public class Level {
         gameField[4][12] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
         gameField[4][13] = new Cell(new Tile(true, TileType.FLOOR), GameGenerator.generateItem(levelNum));
 
-        enemies.add(GameGenerator.generateEnemy(levelNum, 21, new MovablePosition(COLUMNS - 1, 0)));
-        enemies.add(GameGenerator.generateEnemy(levelNum, 21, new MovablePosition(COLUMNS - 6, 0)));
-        gameField[0][COLUMNS - 1].setCreature(enemies.get(0));
+//        enemies.add(GameGenerator.generateEnemy(21, 21, new MovablePosition(COLUMNS - 1, 0)));
+        enemies.add(GameGenerator.generateEnemy(21, 21, new MovablePosition(COLUMNS - 6, 0)));
+//        gameField[0][COLUMNS - 1].setCreature(enemies.get(0));
         gameField[0][COLUMNS - 6].setCreature(enemies.getLast());
         for (int i = 0; i < 5; i++) {
             gameField[i][COLUMNS - 12] = new Cell(new Tile(false, TileType.WALL));
@@ -196,14 +197,23 @@ public class Level {
         }
         Cell newCell = gameField[newY][newX];
         Enemy enemyTarget = (Enemy) newCell.getCreature();
+        boolean stunFl = false;
         if (enemyTarget != null) {
-            int damage = hero.hitEnemy(enemyTarget.getAgility());
+            int damage;
+            if (enemyTarget.getEnemyType() == EnemyType.VAMPIRE && enemyTarget.getNumOfHitsReceived() == 0) {
+                damage = 0;
+                enemyTarget.increaseNumOfHitsReceived();
+            } else {
+                damage = hero.hitEnemy(enemyTarget.getAgility());
+            }
             if (damage == 0) {
                 notification = enemyTarget.getEnemyType().getName() + " dodged";
             } else {
                 notification = enemyTarget.getEnemyType().getName() + " took " + damage + " damage";
+                enemyTarget.increaseNumOfHitsReceived();
             }
             enemyTarget.setHealth(enemyTarget.getHealth() - damage);
+
             if (enemyTarget.isDied()) {
                 newCell.setCreature(null);
                 enemies.remove(enemyTarget);
@@ -234,9 +244,15 @@ public class Level {
                     notification = "Inventory is full";
                 }
             }
-            hero.setPos(new MovablePosition(newX, newY));
-            newCell.setCreature(hero);
-            oldCell.setCreature(null);
+            if (!hero.getStunState()) {
+                hero.setPos(new MovablePosition(newX, newY));
+                newCell.setCreature(hero);
+                oldCell.setCreature(null);
+            } else {
+                hero.changeStunState();
+                stunFl = true;
+            }
+
             res = true;
         }
         if (res) {
@@ -253,7 +269,8 @@ public class Level {
                     } else {
                         notification += enemy.getEnemyType().getName() + " dealt " + damage + " damage";
                     }
-                    hero.setHealth(hero.getHealth() - damage);
+                    notification += hero.decreaseHealth(damage, enemy.getEnemyType(), stunFl);
+                    hero.increaseNumOfHitsReceived();
                 }
             }
         }

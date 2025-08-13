@@ -50,6 +50,24 @@ public class Hero extends Creature {
         }
     }
 
+    public String decreaseHealth(int damage, EnemyType enemyType, boolean stunFl) {
+        String str = "";
+        health -= damage;
+        if (damage != 0) {
+            if (enemyType == EnemyType.VAMPIRE) {
+                maxHealth -= 1;
+                if (health > maxHealth) {
+                    maxHealth -= 1;
+                }
+                str = ", sucked the life out";
+            } else if (enemyType == EnemyType.SNAKE_MAGE && !stunState && !stunFl) {
+                str = ", applied the stun effect";
+                changeStunState();
+            }
+        }
+
+        return str;
+    }
 
     /**
      * Уменьшает время действия зелий на героя
@@ -64,8 +82,8 @@ public class Hero extends Creature {
         if (isMaxHealthPotionEffect()) {
             maxHealthPotionDuration--;
         }
-        if (!isMaxHealthPotionEffect() && maxHealth < getHealth()) {
-            setHealth(maxHealth);
+        if (!isMaxHealthPotionEffect() && maxHealth < health) {
+            health = maxHealth;
         }
     }
 
@@ -119,7 +137,7 @@ public class Hero extends Creature {
      * @return суммарная сила героя
      */
     public int getTotalStrength() {
-        int res = getStrength();
+        int res = strength;
         Item weapon = inventory.getEquippedWeapon();
         if (weapon != null) {
             res += weapon.getStrengthBoost();
@@ -134,7 +152,7 @@ public class Hero extends Creature {
      * @return сумарная ловкость героя
      */
     public int getTotalAgility() {
-        int res = getAgility();
+        int res = agility;
         Item armor = inventory.getEquippedArmor();
         if (armor != null) {
             res += armor.getAgilityBoost();
@@ -278,7 +296,7 @@ public class Hero extends Creature {
         Item item = inventory.takeItem(num, ItemType.FOOD, true);
         if (item != null) {
             int points = item.getHealthBoost();
-            setHealth(Math.min(getHealth() + points, getTotalMaxHealth()));
+            health = Math.min(health + points, getTotalMaxHealth());
             res = true;
         }
 
@@ -298,15 +316,15 @@ public class Hero extends Creature {
             switch (item.getSubtype()) {
                 case SCROLL_OF_DEXTERITY -> {
                     int points = item.getAgilityBoost();
-                    setAgility(getAgility() + points);
+                    agility += points;
                 }
                 case SCROLL_OF_STRENGTH -> {
                     int points = item.getStrengthBoost();
-                    setStrength(getStrength() + points);
+                    strength += points;
                 }
                 case SCROLL_OF_VITALITY -> {
                     int points = item.getMaxHealthBoost();
-                    setMaxHealth(getMaxHealth() + points);
+                    maxHealth += points;
                 }
                 default -> throw new IllegalArgumentException("Impossible subtype");
             }

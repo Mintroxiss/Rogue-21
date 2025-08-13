@@ -11,6 +11,8 @@ public abstract class Creature {
     protected Integer strength;
     protected MovablePosition pos;
     protected final Tile tile;
+    protected int numOfHitsReceived = 0;
+    protected boolean stunState = false;
 
     public Creature(Integer health, Integer agility, Integer strength, MovablePosition pos, TileType tileType) {
         this.health = health;
@@ -60,6 +62,14 @@ public abstract class Creature {
         return tile;
     }
 
+    public void increaseNumOfHitsReceived() {
+        numOfHitsReceived++;
+    }
+
+    public int getNumOfHitsReceived() {
+        return numOfHitsReceived;
+    }
+
     /**
      * Рассчитывает урон по логике броска кубика
      *
@@ -73,5 +83,13 @@ public abstract class Creature {
             sum += GameGenerator.getRandomInt(1, sides);
         }
         return sum;
+    }
+
+    public boolean getStunState() {
+        return stunState;
+    }
+
+    public void changeStunState() {
+        stunState = !stunState;
     }
 }

@@ -61,7 +61,6 @@ public class Enemy extends Creature {
         }
     }
 
-
     public EnemyType getEnemyType() {
         return enemyType;
     }
@@ -79,7 +78,7 @@ public class Enemy extends Creature {
     }
 
     /**
-     * Обрабатывает логику перемещения противника
+     * Обрабатывает логику действия противника
      *
      * @param hero герой
      * @param gameField игровое поле
@@ -114,12 +113,19 @@ public class Enemy extends Creature {
         }
         Integer damage = null;
         Enemy enemy = (Enemy) enemyCell.getCreature();
-        if (newPos.getX() == hero.getPos().getX() && newPos.getY() == hero.getPos().getY()) {
-            damage = hitHero(hero.getTotalAgility());
-        } else if (gameField[newPos.getY()][newPos.getX()].getCreature() == null) {
-            enemyCell.setCreature(null);
-            enemy.setPos(newPos);
-            gameField[newPos.getY()][newPos.getX()].setCreature(enemy);
+        if (!stunState) {
+            if (newPos.getX() == hero.getPos().getX() && newPos.getY() == hero.getPos().getY()) {
+                damage = hitHero(hero.getTotalAgility());
+                if (enemyType == EnemyType.OGRE && !stunState) {
+                    changeStunState();
+                }
+            } else if (gameField[newPos.getY()][newPos.getX()].getCreature() == null) {
+                enemyCell.setCreature(null);
+                enemy.setPos(newPos);
+                gameField[newPos.getY()][newPos.getX()].setCreature(enemy);
+            }
+        } else {
+            changeStunState();
         }
         return damage;
     }

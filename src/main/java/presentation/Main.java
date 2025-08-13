@@ -46,7 +46,6 @@ public class Main {
             }
             gameSession.gameTick(getKey(screen));
         }
-
         screen.stopScreen();
     }
 
@@ -70,14 +69,12 @@ public class Main {
         String notification = gameSession.getNotification();
         int offset = 1;
         int row = 1;
+        clearNotificationInScreen(graphics, offset, gameSession, row);
         if (notification != null) {
-            clearNotificationInScreen(graphics, offset, gameSession, row);
             graphics.setForegroundColor(TextColor.ANSI.WHITE);
             for (int i = offset; i < gameSession.COLUMNS && i - offset < notification.length(); i++) {
                 graphics.setCharacter(i, row, notification.charAt(i - offset));
             }
-        } else {
-            clearNotificationInScreen(graphics, offset, gameSession, row);
         }
     }
 
