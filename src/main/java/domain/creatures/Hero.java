@@ -20,7 +20,7 @@ public class Hero extends Creature {
     private final Inventory inventory = new Inventory();
 
     public Hero() {
-        super(12, 5, 16, null, TileType.HERO);  // TODO
+        super(12, 5, 16, null, TileType.HERO);
     }
 
     /**

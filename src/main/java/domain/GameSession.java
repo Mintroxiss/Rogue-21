@@ -5,8 +5,8 @@ import domain.creatures.Hero;
 import domain.items.ItemType;
 
 public class GameSession {
-    public final int ROWS = 22;
-    public final int COLUMNS = 80;
+    public final int ROWS = 32; // 22
+    public final int COLUMNS = 100; // 80
 
     private Integer levelNum = 1;
     private boolean fieldUpdating = false;
@@ -138,6 +138,9 @@ public class GameSession {
         };
         if (gameSessionMode == GameSessionMode.INVENTORY && gameSessionMode.getInventoryMode() != null) {
             notification = gameSessionMode.getInventoryMode().getAction();
+        }
+        if (level.isGameOver()) {
+            gameSessionMode = GameSessionMode.SCORES;
         }
     }
 
