@@ -7,25 +7,10 @@ public class Cell {
     private final Tile base;
     private Item item = null;
     private Creature creature = null;
+    private boolean cellIsVisible = true;
 
     public Cell(Tile base) {
         this.base = base;
-    }
-
-
-    public Cell(Tile base, Creature creature) {
-        this(base);
-        this.creature = creature;
-    }
-
-    public Cell(Tile base, Item item) {
-        this(base);
-        this.item = item;
-    }
-
-    public Cell(Tile base, Item item, Creature creature) {
-        this(base, creature);
-        this.item = item;
     }
 
     public Creature getCreature() {
@@ -55,12 +40,24 @@ public class Cell {
      * @return Верхняя плитка в клетке
      */
     public TileType getTopTileType() {
+        TileType res;
         if (creature != null) {
-            return creature.getTile().getTileType();
+            res = creature.getTile().getTileType();
+        } else if (item != null) {
+            res = TileType.ITEM;
+        } else if (cellIsVisible) {
+            res = base.getTileType();
+        } else {
+            res = TileType.DARK;
         }
-        if (item != null) {
-            return TileType.ITEM;
-        }
-        return base.getTileType();
+        return res;
+    }
+
+    public boolean isCellIsVisible() {
+        return cellIsVisible;
+    }
+
+    public void setCellIsVisible(boolean cellIsVisible) {
+        this.cellIsVisible = cellIsVisible;
     }
 }

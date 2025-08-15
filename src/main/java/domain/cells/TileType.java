@@ -4,7 +4,6 @@ public enum TileType {
     CORRIDOR,
     DOOR,
     WALL,
-    DOORWAY,
     FLOOR,
     ITEM,
     DARK,

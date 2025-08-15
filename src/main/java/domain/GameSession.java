@@ -9,7 +9,7 @@ public class GameSession {
     public final int COLUMNS = 100; // 80
 
     private Integer levelNum = 1;
-    private boolean fieldUpdating = false;
+    private boolean fieldUpdating = true;
 
     private GameSessionMode gameSessionMode = GameSessionMode.GAME_FIELD;
 

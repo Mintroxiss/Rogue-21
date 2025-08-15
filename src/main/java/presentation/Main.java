@@ -136,7 +136,7 @@ public class Main {
                     case ZOMBIE -> TextColor.ANSI.GREEN;
                     case VAMPIRE -> TextColor.ANSI.RED;
                     case DOOR -> TextColor.ANSI.GREEN_BRIGHT;
-                    case WALL, FLOOR, DOORWAY -> TextColor.ANSI.BLACK_BRIGHT;
+                    case WALL, FLOOR, CORRIDOR -> TextColor.ANSI.BLACK_BRIGHT;
                     default -> TextColor.ANSI.WHITE;
                 };
                 graphics.setForegroundColor(color);
@@ -145,7 +145,7 @@ public class Main {
                     case ITEM -> '(';
                     case DOOR -> '▋';
                     case WALL -> '█';
-                    case FLOOR, DOORWAY -> '.';
+                    case FLOOR -> '.';
                     case HERO -> '@';
                     case OGRE -> 'O';
                     case GHOST -> 'G';
