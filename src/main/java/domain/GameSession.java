@@ -1,30 +1,53 @@
 package domain;
 
+import datalayer.JsonGameRepository;
 import domain.cells.TileType;
-import domain.creatures.Hero;
-import domain.items.ItemType;
+import domain.entities.creatures.Hero;
+import domain.entities.items.ItemType;
+
+import java.util.List;
 
 public class GameSession {
     public final int ROWS = 32; // 22
     public final int COLUMNS = 100; // 80
 
-    private Integer levelNum = 1;
+    GameRepository repo = new JsonGameRepository();
+    private final EnterTheName enterTheName;
+    private Integer levelNum;
+    private GameSessionMode gameSessionMode;
     private boolean fieldUpdating = true;
+    private final Hero hero;
+    private Level level;
+    private String notification;
 
-    private GameSessionMode gameSessionMode = GameSessionMode.GAME_FIELD;
+    public GameSession() {
+        List<Object> loaded = repo.load();
+        enterTheName = new EnterTheName();
+        if (loaded != null) {
+            levelNum = (int) loaded.get(0);
+            enterTheName.setName((String) loaded.get(1));
+            hero = (Hero) loaded.get(2);
+            level = (Level) loaded.get(3);
+            notification = (String) loaded.get(4);
 
-    private final Hero hero = new Hero();
-    private Level level = new Level(ROWS, COLUMNS, levelNum, hero);
-    private String notification = null;
+            gameSessionMode = GameSessionMode.GAME_FIELD;
+        } else {
+            levelNum = 1;
+            hero = new Hero();
+            level = new Level(ROWS, COLUMNS, levelNum, hero);
+            notification = null;
+            gameSessionMode = GameSessionMode.ENTER_THE_NAME;
+        }
+    }
 
     public TileType[][] getGameField() {
         fieldUpdating = false;
-        return level.getTileTypeGameField();
+        return level.takeTileTypeGameField();
     }
 
     public char[][] getInventoryField() {
         fieldUpdating = false;
-        return hero.getInventoryField();
+        return hero.takeInventoryField();
     }
 
     public GameSessionMode getGameSessionMode() {
@@ -42,7 +65,7 @@ public class GameSession {
      */
     public void gameTick(String command) {
         switch (gameSessionMode) {
-//            case ENTER_THE_NAME -> ;
+            case ENTER_THE_NAME -> executeEnterTheNameCommand(command);
             case GAME_FIELD -> executeGameFieldCommand(command);
             case INVENTORY -> executeInventoryCommand(command);
 //            case SCORES -> ;
@@ -54,19 +77,34 @@ public class GameSession {
         }
     }
 
+    public char[][] getEnterTheNameField() {
+        return enterTheName.getStartField(ROWS, COLUMNS);
+    }
+
+    private void executeEnterTheNameCommand(String command) {
+        switch (command) {
+            case "\n" -> gameSessionMode = GameSessionMode.GAME_FIELD;
+            case "backspace" -> enterTheName.removeLastLetter();
+            default -> {
+                if (command.length() == 1) {
+                    enterTheName.addLetter(command.charAt(0));
+                }
+            }
+        }
+        fieldUpdating = true;
+    }
+
     /**
      * Обрабатывает тик игрового поля
      *
      * @param command команда
      */
     private void executeGameFieldCommand(String command) {
-        if (command == null) return;
-
         fieldUpdating = switch (command) {
-            case "w" -> level.heroMoveUp(hero);
-            case "d" -> level.heroMoveRight(hero);
-            case "s" -> level.heroMoveDown(hero);
-            case "a" -> level.heroMoveLeft(hero);
+            case "w" -> level.heroMoveUp();
+            case "d" -> level.heroMoveRight();
+            case "s" -> level.heroMoveDown();
+            case "a" -> level.heroMoveLeft();
             case "i" -> {
                 hero.createInventoryField(null, ROWS, COLUMNS);
                 gameSessionMode = GameSessionMode.INVENTORY;
@@ -84,7 +122,7 @@ public class GameSession {
                 yield true;
             }
             case "j" -> {
-                if (hero.getHealth() < hero.getTotalMaxHealth()) {
+                if (hero.getHealth() < hero.takeTotalMaxHealth()) {
                     hero.createInventoryField(ItemType.FOOD, ROWS, COLUMNS);
                     gameSessionMode = GameSessionMode.INVENTORY;
                     gameSessionMode.setInventoryMode(InventoryMode.USE_FOOD);
@@ -100,7 +138,7 @@ public class GameSession {
                 yield true;
             }
             case "h" -> {
-                if (level.swapEquippedWeaponForLyingWeapon(hero)) {
+                if (level.swapEquippedWeaponForLyingWeapon()) {
                     notification = level.getNotification();
                 } else {
                     hero.createInventoryField(ItemType.WEAPON, ROWS, COLUMNS);
@@ -110,7 +148,7 @@ public class GameSession {
                 yield true;
             }
             case "y" -> {
-                if (level.swapEquippedArmorForLyingArmor(hero)) {
+                if (level.swapEquippedArmorForLyingArmor()) {
                     notification = level.getNotification();
                 } else {
                     hero.createInventoryField(ItemType.ARMOR, ROWS, COLUMNS);
@@ -125,15 +163,19 @@ public class GameSession {
                 gameSessionMode.setInventoryMode(InventoryMode.USE_POTION);
                 yield true;
             }
-            case "enter", "\n" -> {
+            case "\n" -> {
                 boolean res = false;
-                if (level.cellWithHeroHasDoor(hero)) {
+                if (level.cellWithHeroHasDoor()) {
                     nextLevel();
                     res = true;
                 }
                 yield res;
             }
-
+            case "esc" -> {
+                repo.save(hero, enterTheName.getName(), levelNum, level, notification);
+                notification = "Saving was successful!";
+                yield true;
+            }
             default -> false;
         };
         if (gameSessionMode == GameSessionMode.INVENTORY && gameSessionMode.getInventoryMode() != null) {
@@ -201,20 +243,20 @@ public class GameSession {
         switch (command) {
             case "t" -> gameSessionMode = GameSessionMode.GAME_FIELD;
             case "-" -> {
-                if (level.heroThrowAwayEquippedArmor(hero)) {
+                if (level.heroThrowAwayEquippedArmor()) {
                     gameSessionMode = GameSessionMode.GAME_FIELD;
                 }
             }
             case "=" -> {
 
-                if (level.heroThrowAwayEquippedWeapon(hero)) {
+                if (level.heroThrowAwayEquippedWeapon()) {
                     gameSessionMode = GameSessionMode.GAME_FIELD;
                 }
             }
             default -> {
                 try {
                     int num = Integer.parseInt(command);
-                    if (level.heroThrowAwayItem(hero, num)) {
+                    if (level.heroThrowAwayItem(num)) {
                         gameSessionMode = GameSessionMode.GAME_FIELD;
                     }
                 } catch (Exception _) {
@@ -272,7 +314,11 @@ public class GameSession {
 
     private void nextLevel() {
         levelNum++;
-        level = new Level(ROWS, COLUMNS, levelNum, hero);
+        if (levelNum > 21) {
+            gameSessionMode = GameSessionMode.SCORES;
+        } else {
+            level = new Level(ROWS, COLUMNS, levelNum, hero);
+        }
     }
 
     public String getNotification() {
@@ -284,10 +330,10 @@ public class GameSession {
     public String[] getGameInfo() {
         return new String[]{
                 "Level:" + levelNum,
-                "HP:" + hero.getHealth() + "(" + hero.getTotalMaxHealth() + ")",
-                "Str:" + hero.getTotalStrength(),
-                "Ag:" + hero.getTotalAgility(),
-                "Gold:" + hero.getGold(),
+                "HP:" + hero.getHealth() + "(" + hero.takeTotalMaxHealth() + ")",
+                "Str:" + hero.takeTotalStrength(),
+                "Ag:" + hero.takeTotalAgility(),
+                "Gold:" + hero.takeGold(),
         };
     }
 }

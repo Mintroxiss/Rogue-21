@@ -1,4 +1,4 @@
-package domain.items;
+package domain.entities.items;
 
 public enum ItemSubtype {
     // WEAPON

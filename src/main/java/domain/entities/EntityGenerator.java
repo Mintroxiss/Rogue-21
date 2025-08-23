@@ -1,18 +1,18 @@
-package domain;
+package domain.entities;
 
 import domain.cells.TileType;
-import domain.creatures.Enemy;
-import domain.creatures.EnemyType;
-import domain.items.Item;
-import domain.items.ItemSubtype;
-import domain.items.ItemType;
+import domain.entities.creatures.Enemy;
+import domain.entities.creatures.EnemyType;
+import domain.entities.items.Item;
+import domain.entities.items.ItemSubtype;
+import domain.entities.items.ItemType;
 import domain.positions.MovablePosition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 
-public class GameGenerator {
+public class EntityGenerator {
     private static final ArrayList<Item> armors = new ArrayList<>(Arrays.asList(
             new Item(3, ItemType.ARMOR, ItemSubtype.PLATE_MAIL),
             new Item(4, ItemType.ARMOR, ItemSubtype.BANDED_MAIL),

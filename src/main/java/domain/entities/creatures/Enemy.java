@@ -1,15 +1,17 @@
-package domain.creatures;
+package domain.entities.creatures;
 
-import domain.GameGenerator;
+import domain.entities.EntityGenerator;
 import domain.cells.Cell;
 import domain.cells.TileType;
-import domain.items.Item;
+import domain.entities.items.Item;
 import domain.positions.MovablePosition;
 
 public class Enemy extends Creature {
-    private final EnemyType enemyType;
-    private final Integer hostility;
+    private EnemyType enemyType;
+    private Integer hostility;
     private Item rewardTreasure;
+
+    public Enemy() {}
 
     public Enemy(
             EnemyType enemyType,
@@ -54,8 +56,8 @@ public class Enemy extends Creature {
         int agilityDiff = agility - heroAgility;
         int chanceToHit = 50 + agilityDiff * 5;
         chanceToHit = Math.max(5, Math.min(95, chanceToHit));
-        if (GameGenerator.getRandomInt(1, 100) <= chanceToHit) {
-            return strength / GameGenerator.getRandomInt(1, 4);
+        if (EntityGenerator.getRandomInt(1, 100) <= chanceToHit) {
+            return strength / EntityGenerator.getRandomInt(1, 4);
         } else {
             return 0;
         }
@@ -96,15 +98,15 @@ public class Enemy extends Creature {
         if (Math.abs(distanceX) < hostility + 2 && Math.abs(distanceY) < hostility + 2
                 && hasNotObstacleBetweenEnemyAndHero(newPos, distanceX, distanceY, gameField)) {
             if (Math.abs(distanceX) >= Math.abs(distanceY)) {
-                if (distanceX > 0 && gameField[newPos.getY()][newPos.getX() - 1].getBase().getWalkable()) {
+                if (distanceX > 0 && gameField[newPos.getY()][newPos.getX() - 1].getBase().isWalkable()) {
                     newPos.moveLeft();
-                } else if (distanceX < 0 && gameField[newPos.getY()][newPos.getX() + 1].getBase().getWalkable()) {
+                } else if (distanceX < 0 && gameField[newPos.getY()][newPos.getX() + 1].getBase().isWalkable()) {
                     newPos.moveRight();
                 }
             } else {
-                if (distanceY > 0 && gameField[newPos.getY() - 1][newPos.getX()].getBase().getWalkable()) {
+                if (distanceY > 0 && gameField[newPos.getY() - 1][newPos.getX()].getBase().isWalkable()) {
                     newPos.moveUp();
-                } else if (distanceY < 0 && gameField[newPos.getY() + 1][newPos.getX()].getBase().getWalkable()) {
+                } else if (distanceY < 0 && gameField[newPos.getY() + 1][newPos.getX()].getBase().isWalkable()) {
                     newPos.moveDown();
                 }
             }
@@ -115,7 +117,7 @@ public class Enemy extends Creature {
         Enemy enemy = (Enemy) enemyCell.getCreature();
         if (!stunState) {
             if (newPos.getX() == hero.getPos().getX() && newPos.getY() == hero.getPos().getY()) {
-                damage = hitHero(hero.getTotalAgility());
+                damage = hitHero(hero.takeTotalAgility());
                 if (enemyType == EnemyType.OGRE && !stunState) {
                     changeStunState();
                 }
@@ -159,14 +161,14 @@ public class Enemy extends Creature {
             for (int s = 1; s < absDx; s++) {
                 int cx = ex + s * stepX;
                 if (cx < 0 || cx >= gameField[0].length) return false;
-                if (!gameField[ey][cx].getBase().getWalkable()) return false;
+                if (!gameField[ey][cx].getBase().isWalkable()) return false;
             }
         } else { // движемся по Y
             int stepY = Integer.signum(heroY - ey);
             for (int s = 1; s < absDy; s++) {
                 int cy = ey + s * stepY;
                 if (cy < 0 || cy >= gameField.length) return false;
-                if (!gameField[cy][ex].getBase().getWalkable()) return false;
+                if (!gameField[cy][ex].getBase().isWalkable()) return false;
             }
         }
         return true;
@@ -189,13 +191,13 @@ public class Enemy extends Creature {
                 while (fl) {
                     int newX = oldX;
                     int newY = oldY;
-                    switch (GameGenerator.getRandomInt(0, 6)) {
+                    switch (EntityGenerator.getRandomInt(0, 6)) {
                         case 3 -> newX += 1;
                         case 4 -> newX -= 1;
                         case 5 -> newY += 1;
                         case 6 -> newY -= 1;
                     }
-                    if (newX >= 0 && newX < COLUMNS && newY >= 0 && newY < ROWS && gameField[newY][newX].getBase().getWalkable()) {
+                    if (newX >= 0 && newX < COLUMNS && newY >= 0 && newY < ROWS && gameField[newY][newX].getBase().isWalkable()) {
                         newPos.setX(newX);
                         newPos.setY(newY);
                         fl = false;
@@ -209,7 +211,7 @@ public class Enemy extends Creature {
                     int newY = oldY;
                     int midX = oldX;
                     int midY = oldY;
-                    switch (GameGenerator.getRandomInt(0, 10)) {
+                    switch (EntityGenerator.getRandomInt(0, 10)) {
                         case 4 -> {
                             midX = oldX + 1;
                             newX = oldX + 2;
@@ -228,7 +230,7 @@ public class Enemy extends Creature {
                         }
                     }
                     if (newX >= 0 && newX < COLUMNS && newY >= 0 && newY < ROWS && midX >= 0 && midX < COLUMNS && midY >= 0 && midY < ROWS) {
-                        if (gameField[midY][midX].getBase().getWalkable() && gameField[newY][newX].getBase().getWalkable()) {
+                        if (gameField[midY][midX].getBase().isWalkable() && gameField[newY][newX].getBase().isWalkable()) {
 
                             newPos.setX(newX);
                             newPos.setY(newY);
@@ -240,14 +242,14 @@ public class Enemy extends Creature {
             case GHOST -> {
                 boolean fl = true;
                 while (fl) {
-                    if (GameGenerator.getRandomDouble() < 0.6) {
+                    if (EntityGenerator.getRandomDouble() < 0.6) {
                         newPos.setX(oldX);
                         newPos.setY(oldY);
                         break; // сразу выходим
                     }
                     // Смещения от -3 до 3
-                    int offsetX = GameGenerator.getRandomInt(-3, 3);
-                    int offsetY = GameGenerator.getRandomInt(-3, 3);
+                    int offsetX = EntityGenerator.getRandomInt(-3, 3);
+                    int offsetY = EntityGenerator.getRandomInt(-3, 3);
                     // Пропускаем вариант "остаться на месте"
                     if (offsetX == 0 && offsetY == 0) continue;
                     int newX = oldX + offsetX;
@@ -267,7 +269,7 @@ public class Enemy extends Creature {
                 while (fl) {
                     int newX = oldX;
                     int newY = oldY;
-                    switch (GameGenerator.getRandomInt(0, 6)) {
+                    switch (EntityGenerator.getRandomInt(0, 6)) {
                         case 3 -> {
                             newX += 1;
                             newY += 1;
@@ -286,9 +288,9 @@ public class Enemy extends Creature {
                         }
                     }
                     if (newX < 0 || newX >= COLUMNS || newY < 0 || newY >= ROWS) continue;
-                    if (gameField[oldY][newX].getBase().getWalkable() &&
-                            gameField[newY][oldX].getBase().getWalkable() &&
-                            gameField[newY][newX].getBase().getWalkable()) {
+                    if (gameField[oldY][newX].getBase().isWalkable() &&
+                            gameField[newY][oldX].getBase().isWalkable() &&
+                            gameField[newY][newX].getBase().isWalkable()) {
                         newPos.setX(newX);
                         newPos.setY(newY);
                         fl = false;
@@ -300,13 +302,13 @@ public class Enemy extends Creature {
                 while (fl) {
                     int newX = oldX;
                     int newY = oldY;
-                    switch (GameGenerator.getRandomInt(0, 8)) {
+                    switch (EntityGenerator.getRandomInt(0, 8)) {
                         case 5 -> newX += 1;
                         case 6 -> newX -= 1;
                         case 7 -> newY += 1;
                         case 8 -> newY -= 1;
                     }
-                    if (newX >= 0 && newX < COLUMNS && newY >= 0 && newY < ROWS && gameField[newY][newX].getBase().getWalkable()) {
+                    if (newX >= 0 && newX < COLUMNS && newY >= 0 && newY < ROWS && gameField[newY][newX].getBase().isWalkable()) {
                         newPos.setX(newX);
                         newPos.setY(newY);
                         fl = false;
@@ -338,7 +340,7 @@ public class Enemy extends Creature {
         int y = startY;
 
         while (true) {
-            if (!gameField[y][x].getBase().getWalkable()) return false;
+            if (!gameField[y][x].getBase().isWalkable()) return false;
             if (x == endX && y == endY) break;
 
             int e2 = 2 * err;
@@ -352,5 +354,13 @@ public class Enemy extends Creature {
             }
         }
         return true;
+    }
+
+    public void setEnemyType(EnemyType enemyType) {
+        this.enemyType = enemyType;
+    }
+
+    public void setHostility(Integer hostility) {
+        this.hostility = hostility;
     }
 }

@@ -1,14 +1,12 @@
-package domain;
+package domain.entities.items;
 
-import domain.items.Item;
-import domain.items.ItemSubtype;
-import domain.items.ItemType;
+import domain.entities.EntityGenerator;
 
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
 public class Inventory {
-    private final ArrayList<Item> items = GameGenerator.getFirstInventoryItems();
+    private ArrayList<Item> items = EntityGenerator.getFirstInventoryItems();
     private Item equippedWeapon;
     private Item equippedArmor;
 
@@ -147,7 +145,7 @@ public class Inventory {
     /**
      * @return получить стоимость сокровищ в инвентаре
      */
-    public int getGold() {
+    public int takeGold() {
         Item treasures = null;
         for (Item item : items) {
             if (item.getSubtype() == ItemSubtype.TREASURES) {
@@ -179,7 +177,7 @@ public class Inventory {
         int row = 0;
         if (equippedArmor != null && (type == null || type == ItemType.ARMOR)) {
             int rowNum = row;
-            String str = " -) " + equippedArmor.getDescription() + " (equipped)";
+            String str = " -) " + equippedArmor.createDescription() + " (equipped)";
             for (int i = 0; i < str.length(); i++) {
                 inventoryField[rowNum][i] = str.charAt(i);
             }
@@ -188,7 +186,7 @@ public class Inventory {
 
         if (equippedWeapon != null && (type == null || type == ItemType.WEAPON)) {
             int rowNum = row * 2;
-            String str = " =) " + equippedWeapon.getDescription() + " (equipped)";
+            String str = " =) " + equippedWeapon.createDescription() + " (equipped)";
             for (int i = 0; i < str.length(); i++) {
                 inventoryField[rowNum][i] = str.charAt(i);
             }
@@ -206,7 +204,7 @@ public class Inventory {
             int rowNum = row * 2;
 
             if (rowNum >= ROWS) break;
-            String description = value.getDescription();
+            String description = value.createDescription();
             String prefix = " " + num + ") ";
             for (int j = 0; j < prefix.length() && j < COLUMNS; j++) {
                 inventoryField[rowNum][j] = prefix.charAt(j);
@@ -222,5 +220,13 @@ public class Inventory {
             num++;
             row++;
         }
+    }
+
+    public ArrayList<Item> getItems() {
+        return items;
+    }
+
+    public void setItems(ArrayList<Item> items) {
+        this.items = items;
     }
 }

@@ -1,13 +1,15 @@
 package domain.cells;
 
-import domain.creatures.Creature;
-import domain.items.Item;
+import domain.entities.creatures.Creature;
+import domain.entities.items.Item;
 
 public class Cell {
-    private final Tile base;
+    private Tile base;
     private Item item = null;
     private Creature creature = null;
-    private boolean cellIsVisible = true;
+    private boolean cellIsVisible = false;
+
+    public Cell() {}
 
     public Cell(Tile base) {
         this.base = base;
@@ -39,14 +41,16 @@ public class Cell {
      *
      * @return Верхняя плитка в клетке
      */
-    public TileType getTopTileType() {
+    public TileType takeTopTileType() {
         TileType res;
-        if (creature != null) {
-            res = creature.getTile().getTileType();
-        } else if (item != null) {
-            res = TileType.ITEM;
-        } else if (cellIsVisible) {
-            res = base.getTileType();
+        if (cellIsVisible) {
+            if (creature != null) {
+                res = creature.getTile().getTileType();
+            } else if (item != null) {
+                res = TileType.ITEM;
+            } else {
+                res = base.getTileType();
+            }
         } else {
             res = TileType.DARK;
         }
@@ -59,5 +63,9 @@ public class Cell {
 
     public void setCellIsVisible(boolean cellIsVisible) {
         this.cellIsVisible = cellIsVisible;
+    }
+
+    public void setBase(Tile base) {
+        this.base = base;
     }
 }

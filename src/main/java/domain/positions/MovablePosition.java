@@ -1,6 +1,8 @@
 package domain.positions;
 
 public class MovablePosition extends Position {
+    public MovablePosition() {}
+
     public MovablePosition(int x, int y) {
         super(x, y);
     }

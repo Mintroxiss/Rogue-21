@@ -1,10 +1,10 @@
-package domain.creatures;
+package domain.entities.creatures;
 
-import domain.GameGenerator;
-import domain.Inventory;
+import domain.entities.EntityGenerator;
+import domain.entities.items.Inventory;
 import domain.cells.TileType;
-import domain.items.Item;
-import domain.items.ItemType;
+import domain.entities.items.Item;
+import domain.entities.items.ItemType;
 
 public class Hero extends Creature {
     private Integer maxHealth = 12;
@@ -17,7 +17,7 @@ public class Hero extends Creature {
     private int agilityPotionDuration = 0;
     private int maxHealthPotionDuration = 0;
 
-    private final Inventory inventory = new Inventory();
+    private Inventory inventory = new Inventory();
 
     public Hero() {
         super(12, 5, 16, null, TileType.HERO);
@@ -29,11 +29,11 @@ public class Hero extends Creature {
      * @return количество урона
      */
     public int hitEnemy(int enemyAgility) {
-        int agilityDiff = this.getTotalAgility() - enemyAgility;
+        int agilityDiff = this.takeTotalAgility() - enemyAgility;
         int chanceToHit = 50 + agilityDiff * 5;
         chanceToHit = Math.max(5, Math.min(95, chanceToHit));
-        if (GameGenerator.getRandomInt(1, 100) <= chanceToHit) {
-            int damage = getTotalStrength();
+        if (EntityGenerator.getRandomInt(1, 100) <= chanceToHit) {
+            int damage = takeTotalStrength();
             Item weapon = inventory.getEquippedWeapon();
             if (weapon != null) {
                 damage += switch (weapon.getSubtype()) {
@@ -44,7 +44,7 @@ public class Hero extends Creature {
                     default -> throw new IllegalArgumentException("Unacceptable type of weapon");
                 };
             }
-            return damage / GameGenerator.getRandomInt(1, 4);
+            return damage / EntityGenerator.getRandomInt(1, 4);
         } else {
             return 0;
         }
@@ -73,16 +73,16 @@ public class Hero extends Creature {
      * Уменьшает время действия зелий на героя
      */
     public void decreasePotionDurations() {
-        if (isStrengthPotionEffect()) {
+        if (presenceStrengthPotionEffect()) {
             strengthPotionDuration--;
         }
-        if (isAgilityPotionEffect()) {
+        if (presenceAgilityPotionEffect()) {
             agilityPotionDuration--;
         }
-        if (isMaxHealthPotionEffect()) {
+        if (presenceMaxHealthPotionEffect()) {
             maxHealthPotionDuration--;
         }
-        if (!isMaxHealthPotionEffect() && maxHealth < health) {
+        if (!presenceMaxHealthPotionEffect() && maxHealth < health) {
             health = maxHealth;
         }
     }
@@ -100,21 +100,21 @@ public class Hero extends Creature {
             int duration = 50;
             switch (potion.getSubtype()) {
                 case POTION_OF_STRENGTH -> {
-                    if (!isStrengthPotionEffect()) {
+                    if (!presenceStrengthPotionEffect()) {
                         strengthPotionBoost = potion.getStrengthBoost();
                         strengthPotionDuration = duration;
                         res = true;
                     }
                 }
                 case POTION_OF_VITALITY -> {
-                    if (!isMaxHealthPotionEffect()) {
+                    if (!presenceMaxHealthPotionEffect()) {
                         maxHealthPotionBoost = potion.getMaxHealthBoost();
                         maxHealthPotionDuration = duration;
                         res = true;
                     }
                 }
                 case POTION_OF_DEXTERITY -> {
-                    if (!isAgilityPotionEffect()) {
+                    if (!presenceAgilityPotionEffect()) {
                         agilityPotionBoost = potion.getAgilityBoost();
                         agilityPotionDuration = duration;
                         res = true;
@@ -129,20 +129,20 @@ public class Hero extends Creature {
         return res;
     }
 
-    public Integer getGold() {
-        return inventory.getGold();
+    public Integer takeGold() {
+        return inventory.takeGold();
     }
 
     /**
      * @return суммарная сила героя
      */
-    public int getTotalStrength() {
+    public int takeTotalStrength() {
         int res = strength;
         Item weapon = inventory.getEquippedWeapon();
         if (weapon != null) {
             res += weapon.getStrengthBoost();
         }
-        if (isStrengthPotionEffect()) {
+        if (presenceStrengthPotionEffect()) {
             res += strengthPotionBoost;
         }
         return res;
@@ -151,13 +151,13 @@ public class Hero extends Creature {
     /**
      * @return сумарная ловкость героя
      */
-    public int getTotalAgility() {
+    public int takeTotalAgility() {
         int res = agility;
         Item armor = inventory.getEquippedArmor();
         if (armor != null) {
             res += armor.getAgilityBoost();
         }
-        if (isAgilityPotionEffect()) {
+        if (presenceAgilityPotionEffect()) {
             res += agilityPotionBoost;
         }
         return res;
@@ -166,9 +166,9 @@ public class Hero extends Creature {
     /**
      * @return суммарное максимальное ХП героя
      */
-    public int getTotalMaxHealth() {
+    public int takeTotalMaxHealth() {
         int res = maxHealth;
-        if (isMaxHealthPotionEffect()) {
+        if (presenceMaxHealthPotionEffect()) {
             res += maxHealthPotionBoost;
         }
         return res;
@@ -296,7 +296,7 @@ public class Hero extends Creature {
         Item item = inventory.takeItem(num, ItemType.FOOD, true);
         if (item != null) {
             int points = item.getHealthBoost();
-            health = Math.min(health + points, getTotalMaxHealth());
+            health = Math.min(health + points, takeTotalMaxHealth());
             res = true;
         }
 
@@ -343,19 +343,75 @@ public class Hero extends Creature {
         this.maxHealth = maxHealth;
     }
 
-    public char[][] getInventoryField() {
+    public char[][] takeInventoryField() {
         return inventory.getInventoryField();
     }
 
-    public boolean isStrengthPotionEffect() {
+    public boolean presenceStrengthPotionEffect() {
         return strengthPotionDuration > 0;
     }
 
-    public boolean isAgilityPotionEffect() {
+    public boolean presenceAgilityPotionEffect() {
         return agilityPotionDuration > 0;
     }
 
-    public boolean isMaxHealthPotionEffect() {
+    public boolean presenceMaxHealthPotionEffect() {
         return maxHealthPotionDuration > 0;
+    }
+
+    public int getStrengthPotionBoost() {
+        return strengthPotionBoost;
+    }
+
+    public void setStrengthPotionBoost(int strengthPotionBoost) {
+        this.strengthPotionBoost = strengthPotionBoost;
+    }
+
+    public int getAgilityPotionBoost() {
+        return agilityPotionBoost;
+    }
+
+    public void setAgilityPotionBoost(int agilityPotionBoost) {
+        this.agilityPotionBoost = agilityPotionBoost;
+    }
+
+    public int getMaxHealthPotionBoost() {
+        return maxHealthPotionBoost;
+    }
+
+    public void setMaxHealthPotionBoost(int maxHealthPotionBoost) {
+        this.maxHealthPotionBoost = maxHealthPotionBoost;
+    }
+
+    public int getStrengthPotionDuration() {
+        return strengthPotionDuration;
+    }
+
+    public void setStrengthPotionDuration(int strengthPotionDuration) {
+        this.strengthPotionDuration = strengthPotionDuration;
+    }
+
+    public int getAgilityPotionDuration() {
+        return agilityPotionDuration;
+    }
+
+    public void setAgilityPotionDuration(int agilityPotionDuration) {
+        this.agilityPotionDuration = agilityPotionDuration;
+    }
+
+    public int getMaxHealthPotionDuration() {
+        return maxHealthPotionDuration;
+    }
+
+    public void setMaxHealthPotionDuration(int maxHealthPotionDuration) {
+        this.maxHealthPotionDuration = maxHealthPotionDuration;
+    }
+
+    public Inventory getInventory() {
+        return inventory;
+    }
+
+    public void setInventory(Inventory inventory) {
+        this.inventory = inventory;
     }
 }

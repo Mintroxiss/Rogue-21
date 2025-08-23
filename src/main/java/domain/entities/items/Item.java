@@ -1,8 +1,8 @@
-package domain.items;
+package domain.entities.items;
 
 public class Item {
-    private final ItemType type;
-    private final ItemSubtype subtype;
+    private ItemType type;
+    private ItemSubtype subtype;
     private Integer healthBoost = null;
     private Integer maxHealthBoost = null;
     private Integer agilityBoost = null;
@@ -10,6 +10,8 @@ public class Item {
     private Integer price = null;
     private int count;
     private int value;
+
+    public Item() {}
 
     public Item(
             ItemType type,
@@ -71,7 +73,7 @@ public class Item {
     /**
      * @return описание предмета
      */
-    public String getDescription() {
+    public String createDescription() {
         String res = "";
         if (count > 1) {
             res += count + " ";
@@ -147,5 +149,29 @@ public class Item {
 
     public int getValue() {
         return value;
+    }
+
+    public void setType(ItemType type) {
+        this.type = type;
+    }
+
+    public void setSubtype(ItemSubtype subtype) {
+        this.subtype = subtype;
+    }
+
+    public void setHealthBoost(Integer healthBoost) {
+        this.healthBoost = healthBoost;
+    }
+
+    public void setMaxHealthBoost(Integer maxHealthBoost) {
+        this.maxHealthBoost = maxHealthBoost;
+    }
+
+    public void setAgilityBoost(Integer agilityBoost) {
+        this.agilityBoost = agilityBoost;
+    }
+
+    public void setStrengthBoost(Integer strengthBoost) {
+        this.strengthBoost = strengthBoost;
     }
 }

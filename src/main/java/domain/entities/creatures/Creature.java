@@ -1,18 +1,41 @@
-package domain.creatures;
+package domain.entities.creatures;
 
-import domain.GameGenerator;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonSubTypes;
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import domain.cells.Tile;
 import domain.cells.TileType;
+import domain.entities.EntityGenerator;
 import domain.positions.MovablePosition;
+
+@JsonTypeInfo(
+        use = JsonTypeInfo.Id.NAME,
+        include = JsonTypeInfo.As.PROPERTY,
+        property = "type"
+)
+
+@JsonSubTypes({
+        @JsonSubTypes.Type(value = Hero.class, name = "hero"),
+        @JsonSubTypes.Type(value = Enemy.class, name = "enemy"),
+})
+
+@JsonIdentityInfo(
+        generator = ObjectIdGenerators.IntSequenceGenerator.class,
+        property = "@id"
+)
 
 public abstract class Creature {
     protected Integer health;
     protected Integer agility;
     protected Integer strength;
-    protected MovablePosition pos;
-    protected final Tile tile;
+    protected MovablePosition pos = new MovablePosition();
+    protected Tile tile;
     protected int numOfHitsReceived = 0;
     protected boolean stunState = false;
+
+    public Creature() {
+    }
 
     public Creature(Integer health, Integer agility, Integer strength, MovablePosition pos, TileType tileType) {
         this.health = health;
@@ -30,7 +53,7 @@ public abstract class Creature {
         this.pos = pos;
     }
 
-    public boolean isDied() {
+    public boolean takeDied() {
         return health <= 0;
     }
 
@@ -80,7 +103,7 @@ public abstract class Creature {
     protected int rollDice(int count, int sides) {
         int sum = 0;
         for (int i = 0; i < count; i++) {
-            sum += GameGenerator.getRandomInt(1, sides);
+            sum += EntityGenerator.getRandomInt(1, sides);
         }
         return sum;
     }
@@ -91,5 +114,21 @@ public abstract class Creature {
 
     public void changeStunState() {
         stunState = !stunState;
+    }
+
+    public void setTile(Tile tile) {
+        this.tile = tile;
+    }
+
+    public void setNumOfHitsReceived(int numOfHitsReceived) {
+        this.numOfHitsReceived = numOfHitsReceived;
+    }
+
+    public boolean isStunState() {
+        return stunState;
+    }
+
+    public void setStunState(boolean stunState) {
+        this.stunState = stunState;
     }
 }

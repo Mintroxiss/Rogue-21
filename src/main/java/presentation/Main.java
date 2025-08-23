@@ -28,8 +28,7 @@ public class Main {
         while (gameSession.isNotGameOver()) {
             if (gameSession.isFieldUpdating()) {
                 switch (gameSession.getGameSessionMode()) {
-                    case ENTER_THE_NAME -> {
-                    }
+                    case ENTER_THE_NAME -> addEnterTheNameFieldInScreen(graphics, gameSession);
                     case GAME_FIELD -> {
                         addGameFieldInScreen(graphics, gameSession);
                         addGameInfoInScreen(graphics, gameSession);
@@ -38,8 +37,7 @@ public class Main {
                         addInventoryFieldInScreen(graphics, gameSession);
                         addGameInfoInScreen(graphics, gameSession);
                     }
-                    case SCORES -> {
-                    }
+                    case SCORES -> {}
                 }
                 addNotificationInScreen(graphics, gameSession);
                 screen.refresh();
@@ -47,6 +45,16 @@ public class Main {
             gameSession.gameTick(getKey(screen));
         }
         screen.stopScreen();
+    }
+
+    private static void addEnterTheNameFieldInScreen(TextGraphics graphics, GameSession gameSession) {
+        char[][] inventoryField = gameSession.getEnterTheNameField();
+        graphics.setForegroundColor(TextColor.ANSI.WHITE);
+        for (int i = 0; i < gameSession.ROWS; i++) {
+            for (int j = 0; j < gameSession.COLUMNS; j++) {
+                graphics.setCharacter(j, i + 3, inventoryField[i][j]);
+            }
+        }
     }
 
     private static void addGameInfoInScreen(TextGraphics graphics, GameSession gameSession) {
@@ -92,29 +100,37 @@ public class Main {
     }
 
     private static String getKey(Screen screen) {
-        String keyStr;
         KeyStroke key;
         try {
             key = screen.readInput();
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        if (key.getCharacter() != null) {
-            keyStr = key.getCharacter().toString();
-        } else {
-            KeyType type = key.getKeyType();
-            keyStr = switch (type) {
-                case ArrowUp -> "w";
-                case ArrowDown -> "s";
-                case ArrowLeft -> "a";
-                case ArrowRight -> "d";
-                case Enter -> "enter";
-                case Escape -> "esc";
-                default -> null;
-            };
+
+        if (key == null) {
+            return null;
         }
-        return keyStr;
+
+        if (key.getCharacter() != null) {
+            char c = key.getCharacter();
+
+            if (c == 8)   return "backspace";
+
+            return String.valueOf(c);
+        }
+
+        KeyType type = key.getKeyType();
+        return switch (type) {
+            case ArrowUp    -> "w";
+            case ArrowDown  -> "s";
+            case ArrowLeft  -> "a";
+            case ArrowRight -> "d";
+            case Enter      -> "enter";
+            case Escape     -> "esc";
+            default -> null;
+        };
     }
+
 
     private static void addInventoryFieldInScreen(TextGraphics graphics, GameSession gameSession) {
         char[][] inventoryField = gameSession.getInventoryField();

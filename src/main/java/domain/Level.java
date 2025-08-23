@@ -3,12 +3,12 @@ package domain;
 import domain.cells.Cell;
 import domain.cells.Tile;
 import domain.cells.TileType;
-import domain.creatures.Creature;
-import domain.creatures.Enemy;
-import domain.creatures.EnemyType;
-import domain.creatures.Hero;
-import domain.items.Item;
-import domain.items.ItemType;
+import domain.entities.EntityGenerator;
+import domain.entities.creatures.Enemy;
+import domain.entities.creatures.EnemyType;
+import domain.entities.creatures.Hero;
+import domain.entities.items.Item;
+import domain.entities.items.ItemType;
 import domain.positions.MovablePosition;
 
 import java.util.ArrayList;
@@ -16,19 +16,25 @@ import java.util.Comparator;
 import java.util.function.IntUnaryOperator;
 
 public class Level {
-    private final int ROWS;
-    private final int COLUMNS;
-    private final Cell[][] gameField;
-    private final ArrayList<Enemy> enemies = new ArrayList<>();
+    private int ROWS;
+    private int COLUMNS;
+    private Cell[][] gameField;
+    private ArrayList<Enemy> enemies;
+    private Hero hero;
 
     private String notification = null;
 
     private boolean gameOver = false;
 
-    public Level(int ROWS, int COLUMNS, int levelNum, Creature hero) {
+    public Level() {}
+
+    public Level(int ROWS, int COLUMNS, int levelNum, Hero hero) {
         this.ROWS = ROWS;
         this.COLUMNS = COLUMNS;
-        this.gameField = generateGameField(levelNum, hero);
+        this.hero = hero;
+        this.enemies = new ArrayList<>();
+        this.gameField = generateGameField(levelNum);
+        processVisibleRoom();
     }
 
     private static class Room {
@@ -61,7 +67,7 @@ public class Level {
         }
     }
 
-    private Cell[][] generateGameField(int levelNum, Creature hero) {
+    private Cell[][] generateGameField(int levelNum) {
         Cell[][] gameField = new Cell[ROWS][COLUMNS];
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLUMNS; j++) {
@@ -94,11 +100,11 @@ public class Level {
             carveCorridor(gameField, new int[]{r1.centerX, r1.centerY}, new int[]{r2.centerX, r2.centerY});
         }
 
-        int roomWithHeroRow = GameGenerator.getRandomInt(0, 2);
-        int roomWithHeroColumn = GameGenerator.getRandomInt(0, 2);
+        int roomWithHeroRow = EntityGenerator.getRandomInt(0, 2);
+        int roomWithHeroColumn = EntityGenerator.getRandomInt(0, 2);
 
-        int roomWithDoorRow = GameGenerator.getRandomInt(0, 2);
-        int roomWithDoorColumn = GameGenerator.getRandomInt(0, 2);
+        int roomWithDoorRow = EntityGenerator.getRandomInt(0, 2);
+        int roomWithDoorColumn = EntityGenerator.getRandomInt(0, 2);
 
         for (int idx = 0; idx < rooms.size(); idx++) {
             Room room = rooms.get(idx);
@@ -194,8 +200,8 @@ public class Level {
         ArrayList<Room> rooms = new ArrayList<>();
         for (int h = 0; h < 3; h++) {
             for (int w = 0; w < 3; w++) {
-                int roomHeight = GameGenerator.getRandomInt((int) (maxRoomHeight / 1.5), maxRoomHeight);
-                int roomWidth = GameGenerator.getRandomInt((int) (maxRoomWidth / 1.5), maxRoomWidth);
+                int roomHeight = EntityGenerator.getRandomInt((int) (maxRoomHeight / 1.5), maxRoomHeight);
+                int roomWidth = EntityGenerator.getRandomInt((int) (maxRoomWidth / 1.5), maxRoomWidth);
                 int rowOffset = h * ROWS / 3 + maxRoomHeight / 6;
                 int columnOffset = w * COLUMNS / 3 + maxRoomWidth / 6;
 
@@ -217,20 +223,20 @@ public class Level {
             int maxRoomWidth,
             Cell[][] gameField
     ) {
-        int numOfItems = GameGenerator.getRandomInt(3, 9);
+        int numOfItems = EntityGenerator.getRandomInt(3, 9);
         while (numOfItems > 0) {
-            int roomWithItemRow = GameGenerator.getRandomInt(0, 2);
-            int roomWithItemColumn = GameGenerator.getRandomInt(0, 2);
+            int roomWithItemRow = EntityGenerator.getRandomInt(0, 2);
+            int roomWithItemColumn = EntityGenerator.getRandomInt(0, 2);
             if (roomWithItemRow == roomWithHeroRow && roomWithItemColumn == roomWithHeroColumn ||
                     roomWithItemRow == roomWithDoorRow && roomWithItemColumn == roomWithDoorColumn) {
                 continue;
             }
-            int row = maxRoomHeight / 3 + roomWithItemRow * ROWS / 3 + maxRoomHeight / 6 + GameGenerator.getRandomInt(-1, 1);
-            int column = maxRoomWidth / 3 + roomWithItemColumn * COLUMNS / 3 + maxRoomWidth / 6 + GameGenerator.getRandomInt(-6, 6);
+            int row = maxRoomHeight / 3 + roomWithItemRow * ROWS / 3 + maxRoomHeight / 6 + EntityGenerator.getRandomInt(-1, 1);
+            int column = maxRoomWidth / 3 + roomWithItemColumn * COLUMNS / 3 + maxRoomWidth / 6 + EntityGenerator.getRandomInt(-6, 6);
             if (gameField[row][column].getItem() != null) {
                 continue;
             }
-            gameField[row][column].setItem(GameGenerator.generateItem(levelNum));
+            gameField[row][column].setItem(EntityGenerator.generateItem(levelNum));
 
             numOfItems--;
         }
@@ -246,19 +252,22 @@ public class Level {
     ) {
         int numOfEnemies;
         if (levelNum < 5) {
-            numOfEnemies = GameGenerator.getRandomInt(2, 4);
+            numOfEnemies = EntityGenerator.getRandomInt(2, 4);
         } else if (levelNum < 10) {
-            numOfEnemies = GameGenerator.getRandomInt(4, 7);
+            numOfEnemies = EntityGenerator.getRandomInt(4, 7);
         } else {
-            numOfEnemies = GameGenerator.getRandomInt(7, 9);
+            numOfEnemies = EntityGenerator.getRandomInt(7, 9);
         }
-        while (numOfEnemies > 0) {
-            int roomWithEnemyRow = GameGenerator.getRandomInt(0, 2);
-            int roomWithEnemyColumn = GameGenerator.getRandomInt(0, 2);
+
+        int attempts = 0;
+        while (numOfEnemies > 0 && attempts < 1000) {
+            attempts++;
+            int roomWithEnemyRow = EntityGenerator.getRandomInt(0, 2);
+            int roomWithEnemyColumn = EntityGenerator.getRandomInt(0, 2);
             if (roomWithEnemyRow == roomWithHeroRow && roomWithEnemyColumn == roomWithHeroColumn) {
                 continue;
             }
-            Enemy enemy = GameGenerator.generateEnemy(
+            Enemy enemy = EntityGenerator.generateEnemy(
                     levelNum,
                     21,
                     new MovablePosition(
@@ -278,10 +287,9 @@ public class Level {
     /**
      * Кладёт оружие с поля в инвентарь героя, предыдущее оружие выбрасывает на место подбираемого
      *
-     * @param hero герой
      * @return получилось ли поменять оружие?
      */
-    public boolean swapEquippedWeaponForLyingWeapon(Hero hero) {
+    public boolean swapEquippedWeaponForLyingWeapon() {
         boolean res = false;
         Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
         if (cell.getItem() != null) {
@@ -299,10 +307,9 @@ public class Level {
     /**
      * Кладёт броню с поля в инвентарь героя, предыдущую броню выбрасывает на место подбираемой
      *
-     * @param hero герой
      * @return получилось ли поменять броню?
      */
-    public boolean swapEquippedArmorForLyingArmor(Hero hero) {
+    public boolean swapEquippedArmorForLyingArmor() {
         boolean res = false;
         Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
         if (cell.getItem() != null) {
@@ -320,13 +327,13 @@ public class Level {
     /**
      * Смещает героя вверх
      *
-     * @param hero герой
      * @return true, если герой сместился
      */
-    public boolean heroMoveUp(Hero hero) {
+    public boolean heroMoveUp() {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(hero, pos.getX(), pos.getY() - 1);
+        boolean res = heroMove(pos.getX(), pos.getY() - 1);
         if (res) {
+            processVisibleAroundHero(Direction.UP);
             hero.decreasePotionDurations();
         }
         return res;
@@ -335,10 +342,9 @@ public class Level {
     /**
      * Проверяет, находится ли герой у двери
      *
-     * @param hero герой
      * @return true, если герой стоит на клетке с дверью
      */
-    public boolean cellWithHeroHasDoor(Hero hero) {
+    public boolean cellWithHeroHasDoor() {
         boolean res = false;
         Cell cell = gameField[hero.getPos().getY()][hero.getPos().getX()];
         if (cell.getBase().getTileType() == TileType.DOOR) {
@@ -350,13 +356,13 @@ public class Level {
     /**
      * Смещает героя вниз
      *
-     * @param hero герой
      * @return true, если герой сместился
      */
-    public boolean heroMoveDown(Hero hero) {
+    public boolean heroMoveDown() {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(hero, pos.getX(), pos.getY() + 1);
+        boolean res = heroMove(pos.getX(), pos.getY() + 1);
         if (res) {
+            processVisibleAroundHero(Direction.DOWN);
             hero.decreasePotionDurations();
         }
         return res;
@@ -365,13 +371,13 @@ public class Level {
     /**
      * Смещает героя влево
      *
-     * @param hero герой
      * @return true, если герой сместился
      */
-    public boolean heroMoveLeft(Hero hero) {
+    public boolean heroMoveLeft() {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(hero, pos.getX() - 1, pos.getY());
+        boolean res = heroMove(pos.getX() - 1, pos.getY());
         if (res) {
+            processVisibleAroundHero(Direction.LEFT);
             hero.decreasePotionDurations();
         }
         return res;
@@ -380,25 +386,161 @@ public class Level {
     /**
      * Смещает героя вправо
      *
-     * @param hero герой
      * @return true, если герой сместился
      */
-    public boolean heroMoveRight(Hero hero) {
+    public boolean heroMoveRight() {
         MovablePosition pos = hero.getPos();
-        boolean res = heroMove(hero, pos.getX() + 1, pos.getY());
+        boolean res = heroMove(pos.getX() + 1, pos.getY());
         if (res) {
+            processVisibleAroundHero(Direction.RIGHT);
             hero.decreasePotionDurations();
         }
         return res;
     }
 
+    private enum Direction {
+        UP, DOWN, LEFT, RIGHT
+    }
+
+    private void processVisibleAroundHero(Direction heroDirection) {
+        int heroY = hero.getPos().getY();
+        int heroX = hero.getPos().getX();
+        int visionRadius = 8;  // дальность обзора
+        int rayStep = 1;       // шаг по градусам
+
+        int startAngle = 0;
+        int endAngle = 0;
+
+        // Настройка сектора обзора в зависимости от направления
+        switch (heroDirection) {
+            case UP:
+                startAngle = 225;
+                endAngle = 315;
+                break;
+            case DOWN:
+                startAngle = 45;
+                endAngle = 135;
+                break;
+            case LEFT:
+                startAngle = 135;
+                endAngle = 225;
+                break;
+            case RIGHT:
+                startAngle = 315;
+                endAngle = 45; // переход через 0°
+                break;
+        }
+
+        // Запуск Ray Casting в секторе
+        for (int angle = 0; angle < 360; angle += rayStep) {
+            if (!isInSector(angle, startAngle, endAngle)) {
+                continue;
+            }
+
+            double rad = Math.toRadians(angle);
+            int targetX = heroX + (int) Math.round(Math.cos(rad) * visionRadius);
+            int targetY = heroY + (int) Math.round(Math.sin(rad) * visionRadius);
+
+            ArrayList<int[]> line = bresenhamLine(heroX, heroY, targetX, targetY);
+            for (int[] point : line) {
+                int x = point[0];
+                int y = point[1];
+
+                if (y < 0 || y >= ROWS || x < 0 || x >= COLUMNS) break;
+
+                gameField[y][x].setCellIsVisible(true);
+
+                if (gameField[y][x].getBase().getTileType() == TileType.WALL) {
+                    break; // останавливаем луч, если стена
+                }
+            }
+        }
+    }
+
+    private boolean isInSector(int angle, int startAngle, int endAngle) {
+        if (startAngle <= endAngle) {
+            return angle >= startAngle && angle <= endAngle;
+        } else {
+            return angle >= startAngle || angle <= endAngle;
+        }
+    }
+
+    // Алгоритм Брезенхэма
+    private ArrayList<int[]> bresenhamLine(int x0, int y0, int x1, int y1) {
+        ArrayList<int[]> points = new ArrayList<>();
+        int dx = Math.abs(x1 - x0);
+        int dy = Math.abs(y1 - y0);
+        int sx = x0 < x1 ? 1 : -1;
+        int sy = y0 < y1 ? 1 : -1;
+        int err = dx - dy;
+
+        while (true) {
+            points.add(new int[]{x0, y0});
+            if (x0 == x1 && y0 == y1) break;
+            int e2 = 2 * err;
+            if (e2 > -dy) {
+                err -= dy;
+                x0 += sx;
+            }
+            if (e2 < dx) {
+                err += dx;
+                y0 += sy;
+            }
+        }
+        return points;
+    }
+
+    /**
+     * Обрабатывает видимость комнаты
+     */
+    private void processVisibleRoom() {
+        int row = hero.getPos().getY();
+        int column = hero.getPos().getX();
+        if (gameField[row][column].getBase().getTileType() == TileType.FLOOR ||
+                gameField[row][column].getBase().getTileType() == TileType.DOOR) {
+            hideFloor();
+            boolean[][] visited = new boolean[ROWS][COLUMNS];
+            floodFill(row, column, visited);
+        } else {
+            hideFloor();
+        }
+    }
+
+    private void hideFloor() {
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+                if (gameField[i][j].getBase().getTileType() == TileType.FLOOR) {
+                    gameField[i][j].setCellIsVisible(false);
+                }
+            }
+        }
+    }
+
+    private void floodFill(int row, int col, boolean[][] visited) {
+        if (row < 0 || row >= ROWS || col < 0 || col >= COLUMNS) return;
+        if (visited[row][col]) return;
+
+        Cell cell = gameField[row][col];
+        TileType type = cell.getBase().getTileType();
+
+        if (type == TileType.DARK || type == TileType.CORRIDOR) return;
+
+        visited[row][col] = true;
+        cell.setCellIsVisible(true);
+
+        floodFill(row + 1, col, visited);
+        floodFill(row - 1, col, visited);
+        floodFill(row, col + 1, visited);
+        floodFill(row, col - 1, visited);
+    }
+
+
     /**
      * Обрабатывает изменения на игровом поле при ходе героя
      *
-     * @param hero герой
      * @return true, если герой выполнил действие
      */
-    private boolean heroMove(Hero hero, int newX, int newY) {
+    private boolean heroMove(int newX, int newY) {
         boolean res = false;
 
         MovablePosition pos = hero.getPos();
@@ -424,7 +566,7 @@ public class Level {
             }
             enemyTarget.setHealth(enemyTarget.getHealth() - damage);
 
-            if (enemyTarget.isDied()) {
+            if (enemyTarget.takeDied()) {
                 newCell.setCreature(null);
                 enemies.remove(enemyTarget);
                 notification += ", the creature is died";
@@ -433,7 +575,7 @@ public class Level {
                 }
             }
             res = true;
-        } else if (newCell.getBase().getWalkable()) {
+        } else if (newCell.getBase().isWalkable()) {
             Cell oldCell = gameField[pos.getY()][pos.getX()];
             Item item = newCell.getItem();
             if (item != null) {
@@ -458,6 +600,7 @@ public class Level {
                 hero.setPos(new MovablePosition(newX, newY));
                 newCell.setCreature(hero);
                 oldCell.setCreature(null);
+                processVisibleRoom();
             } else {
                 hero.changeStunState();
                 stunFl = true;
@@ -481,7 +624,7 @@ public class Level {
                     }
                     notification += hero.decreaseHealth(damage, enemy.getEnemyType(), stunFl);
                     hero.increaseNumOfHitsReceived();
-                    if (hero.isDied()) {
+                    if (hero.takeDied()) {
                         gameOver = true;
                     }
                 }
@@ -493,10 +636,9 @@ public class Level {
     /**
      * Выбрасывает экипированное оружие
      *
-     * @param hero герой
      * @return true, если получилось выкинуть
      */
-    public boolean heroThrowAwayEquippedWeapon(Hero hero) {
+    public boolean heroThrowAwayEquippedWeapon() {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
         Item item = hero.throwAwayEquippedWeapon();
@@ -514,10 +656,9 @@ public class Level {
     /**
      * Выбрасывает экипированную броню
      *
-     * @param hero герой
      * @return true, если получилось выкинуть
      */
-    public boolean heroThrowAwayEquippedArmor(Hero hero) {
+    public boolean heroThrowAwayEquippedArmor() {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
         Item item = hero.throwAwayEquippedArmor();
@@ -535,11 +676,10 @@ public class Level {
     /**
      * Выбрасывает предмет из инвентаря
      *
-     * @param hero герой
-     * @param num  номер предмета в инвентаре
+     * @param num номер предмета в инвентаре
      * @return true, если получилось выкинуть
      */
-    public boolean heroThrowAwayItem(Hero hero, int num) {
+    public boolean heroThrowAwayItem(int num) {
         boolean res = false;
         Cell cellWithHero = gameField[hero.getPos().getY()][hero.getPos().getX()];
         Item item = hero.throwAwayItem(num);
@@ -557,13 +697,13 @@ public class Level {
     /**
      * @return игровое поле
      */
-    public TileType[][] getTileTypeGameField() {
+    public TileType[][] takeTileTypeGameField() {
         int rowNum = this.gameField.length;
         int columnNum = this.gameField[0].length;
         TileType[][] gameField = new TileType[rowNum][columnNum];
         for (int i = 0; i < rowNum; i++) {
             for (int j = 0; j < columnNum; j++) {
-                gameField[i][j] = this.gameField[i][j].getTopTileType();
+                gameField[i][j] = this.gameField[i][j].takeTopTileType();
             }
         }
         return gameField;
@@ -581,5 +721,45 @@ public class Level {
 
     public boolean isGameOver() {
         return gameOver;
+    }
+
+    public int getROWS() {
+        return ROWS;
+    }
+
+    public void setROWS(int ROWS) {
+        this.ROWS = ROWS;
+    }
+
+    public int getCOLUMNS() {
+        return COLUMNS;
+    }
+
+    public void setCOLUMNS(int COLUMNS) {
+        this.COLUMNS = COLUMNS;
+    }
+
+    public Cell[][] getGameField() {
+        return gameField;
+    }
+
+    public void setGameField(Cell[][] gameField) {
+        this.gameField = gameField;
+    }
+
+    public ArrayList<Enemy> getEnemies() {
+        return enemies;
+    }
+
+    public void setEnemies(ArrayList<Enemy> enemies) {
+        this.enemies = enemies;
+    }
+
+    public Hero getHero() {
+        return hero;
+    }
+
+    public void setHero(Hero hero) {
+        this.hero = hero;
     }
 }

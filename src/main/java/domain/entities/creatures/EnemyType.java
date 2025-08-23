@@ -1,4 +1,4 @@
-package domain.creatures;
+package domain.entities.creatures;
 
 public enum EnemyType {
     ZOMBIE("Zombie"),
