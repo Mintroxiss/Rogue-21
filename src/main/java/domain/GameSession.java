@@ -9,6 +9,7 @@ import domain.entities.creatures.Hero;
 import domain.entities.items.ItemType;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 public class GameSession {
     public final int ROWS = 32; // 22
@@ -309,6 +310,7 @@ public class GameSession {
                 hero.getHits(),
                 hero.getMisses())
         );
+        loadedScoreList.sort(Comparator.comparingInt(LoadedScoreData::gold).reversed());
         repo.saveScoreList(loadedScoreList);
     }
 

@@ -157,7 +157,7 @@ public class Hero extends Creature {
     }
 
     /**
-     * @return сумарная ловкость героя
+     * @return суммарная ловкость героя
      */
     public int takeTotalAgility() {
         int res = agility;

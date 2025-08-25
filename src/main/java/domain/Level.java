@@ -154,9 +154,9 @@ public class Level {
      * @param end       конечные координаты
      */
     private void carveCorridor(Cell[][] gameField, int[] start, int[] end) {
-        int x1 = start[0], y1 = start[1], x2 = end[0], y2 = end[1];
+        int y1 = start[1], x2 = end[0], y2 = end[1];
 
-        int x = x1;
+        int x = start[0];
         while (x != x2) {
             gameField[y1][x] = new Cell(new Tile(true, TileType.CORRIDOR));
             x += Integer.compare(x2, x);
@@ -449,7 +449,7 @@ public class Level {
 
                 if (y < 0 || y >= ROWS || x < 0 || x >= COLUMNS) break;
 
-                gameField[y][x].setCellIsVisible(true);
+                gameField[y][x].setVisibleCell(true);
 
                 if (gameField[y][x].getBase().getTileType() == TileType.WALL) {
                     break; // останавливаем луч, если стена
@@ -511,7 +511,7 @@ public class Level {
         for (int i = 0; i < ROWS; i++) {
             for (int j = 0; j < COLUMNS; j++) {
                 if (gameField[i][j].getBase().getTileType() == TileType.FLOOR) {
-                    gameField[i][j].setCellIsVisible(false);
+                    gameField[i][j].setVisibleCell(false);
                 }
             }
         }
@@ -527,7 +527,7 @@ public class Level {
         if (type == TileType.DARK || type == TileType.CORRIDOR) return;
 
         visited[row][col] = true;
-        cell.setCellIsVisible(true);
+        cell.setVisibleCell(true);
 
         floodFill(row + 1, col, visited);
         floodFill(row - 1, col, visited);

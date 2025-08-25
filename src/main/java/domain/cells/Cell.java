@@ -7,7 +7,7 @@ public class Cell {
     private Tile base;
     private Item item = null;
     private Creature creature = null;
-    private boolean cellIsVisible = false;
+    private boolean visibleCell = false;
 
     public Cell() {}
 
@@ -43,7 +43,7 @@ public class Cell {
      */
     public TileType takeTopTileType() {
         TileType res;
-        if (cellIsVisible) {
+        if (visibleCell) {
             if (creature != null) {
                 res = creature.getTile().getTileType();
             } else if (item != null) {
@@ -57,12 +57,12 @@ public class Cell {
         return res;
     }
 
-    public boolean isCellIsVisible() {
-        return cellIsVisible;
+    public boolean isVisibleCell() {
+        return visibleCell;
     }
 
-    public void setCellIsVisible(boolean cellIsVisible) {
-        this.cellIsVisible = cellIsVisible;
+    public void setVisibleCell(boolean visibleCell) {
+        this.visibleCell = visibleCell;
     }
 
     public void setBase(Tile base) {
