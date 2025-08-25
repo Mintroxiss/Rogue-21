@@ -2,42 +2,52 @@ package domain;
 
 import datalayer.JsonGameRepository;
 import domain.cells.TileType;
+import domain.datalayer_connect.GameRepository;
+import domain.datalayer_connect.LoadedGame;
+import domain.datalayer_connect.LoadedScoreData;
 import domain.entities.creatures.Hero;
 import domain.entities.items.ItemType;
 
-import java.util.List;
+import java.util.ArrayList;
 
 public class GameSession {
     public final int ROWS = 32; // 22
     public final int COLUMNS = 100; // 80
 
-    GameRepository repo = new JsonGameRepository();
+    private final GameRepository repo = new JsonGameRepository();
+    private final LoadedGame loadedGame = repo.load();
+    private final ArrayList<LoadedScoreData> loadedScoreList = repo.loadScoreList();
+
     private final EnterTheName enterTheName;
     private Integer levelNum;
     private GameSessionMode gameSessionMode;
     private boolean fieldUpdating = true;
-    private final Hero hero;
+    private Hero hero;
     private Level level;
     private String notification;
+    private boolean gameFieldInit = false;
+    private int scoreNum = 1;
+    private boolean turnedOn = true;
 
     public GameSession() {
-        List<Object> loaded = repo.load();
         enterTheName = new EnterTheName();
-        if (loaded != null) {
-            levelNum = (int) loaded.get(0);
-            enterTheName.setName((String) loaded.get(1));
-            hero = (Hero) loaded.get(2);
-            level = (Level) loaded.get(3);
-            notification = (String) loaded.get(4);
-
-            gameSessionMode = GameSessionMode.GAME_FIELD;
+        if (loadedGame != null) {
+            notification = "Do you want to continue the last game?";
+            gameSessionMode = GameSessionMode.CONTINUE;
         } else {
-            levelNum = 1;
-            hero = new Hero();
-            level = new Level(ROWS, COLUMNS, levelNum, hero);
-            notification = null;
+            initVals();
             gameSessionMode = GameSessionMode.ENTER_THE_NAME;
         }
+    }
+
+    private void initVals() {
+        levelNum = 1;
+        hero = new Hero();
+        level = new Level(ROWS, COLUMNS, levelNum, hero);
+        notification = null;
+        gameSessionMode = GameSessionMode.ENTER_THE_NAME;
+
+        gameFieldInit = true;
     }
 
     public TileType[][] getGameField() {
@@ -54,10 +64,6 @@ public class GameSession {
         return gameSessionMode;
     }
 
-    public Boolean isNotGameOver() {
-        return true; // TODO
-    }
-
     /**
      * Обрабатывает следующий тик игровой машины
      *
@@ -65,15 +71,109 @@ public class GameSession {
      */
     public void gameTick(String command) {
         switch (gameSessionMode) {
+            case CONTINUE -> executeContinueCommand(command);
             case ENTER_THE_NAME -> executeEnterTheNameCommand(command);
             case GAME_FIELD -> executeGameFieldCommand(command);
             case INVENTORY -> executeInventoryCommand(command);
-//            case SCORES -> ;
+            case SCORES -> executeScoresCommand(command);
         }
 
-        String levelNotification = level.getNotification();
-        if (levelNotification != null) {
-            notification = levelNotification;
+        if (gameFieldInit) {
+            String levelNotification = level.getNotification();
+            if (levelNotification != null) {
+                notification = levelNotification;
+            }
+        }
+    }
+
+    public char[][] getScoreField() {
+        notification = "Game Over for " + enterTheName.getName();
+        char[][] scoreField = new char[ROWS][COLUMNS];
+        for (int i = 0; i < ROWS; i++) {
+            for (int j = 0; j < COLUMNS; j++) {
+                scoreField[i][j] = ' ';
+            }
+        }
+        int row = 3 + addScoreInScoreField(loadedScoreList.get(scoreNum - 1), scoreField, 0, scoreNum);
+        if (scoreNum < loadedScoreList.size()) {
+            row = 3 + addScoreInScoreField(loadedScoreList.get(scoreNum), scoreField, row, scoreNum + 1);
+        }
+        if (scoreNum + 1 < loadedScoreList.size()) {
+            addScoreInScoreField(loadedScoreList.get(scoreNum + 1), scoreField, row, scoreNum + 2);
+        }
+
+        return scoreField;
+    }
+
+    private int addScoreInScoreField(LoadedScoreData scoreData, char[][] field, int row, int num) {
+        String str = num + ") " + scoreData.name();
+        String firstSpacer = " ".repeat(enterTheName.MAX_LENGTH - scoreData.name().length() + 2);
+        str += firstSpacer;
+        String spacer = "\n" + " ".repeat(str.length());
+        str += "Gold: " + scoreData.gold();
+        str += spacer + "Level: " + scoreData.level() +
+                spacer + "Kills: " + scoreData.kills() +
+                spacer + "Hits: " + scoreData.hits() +
+                spacer + "Misses: " + scoreData.misses() +
+                spacer + "Steps: " + scoreData.steps() +
+                spacer + "Food eaten: " + scoreData.foodEaten() +
+                spacer + "Scrolls read: " + scoreData.scrollsRead() +
+                spacer + "Potions drunk: " + scoreData.potionsDrunk();
+
+        int column = 0;
+        for (int i = 0; i < str.length(); i++) {
+            char c = str.charAt(i);
+            if (column >= COLUMNS) {
+                row++;
+                column = 0;
+            }
+            if (c == '\n') {
+                row++;
+                column = 0;
+            } else {
+                field[row][column] = c;
+                column++;
+            }
+        }
+
+        return row;
+    }
+
+
+    private void executeScoresCommand(String command) {
+        switch (command) {
+            case "arrowUp" -> {
+                if (scoreNum - 1 > 0) {
+                    scoreNum--;
+                }
+            }
+            case "arrowDown" -> {
+                if (scoreNum + 1 < loadedScoreList.size()) {
+                    scoreNum++;
+                }
+            }
+            case "\n", "esc" -> turnedOn = false;
+        }
+    }
+
+    private void executeContinueCommand(String command) {
+        switch (command) {
+            case "\n" -> {
+                levelNum = loadedGame.levelNum();
+                enterTheName.setName(loadedGame.name());
+                hero = loadedGame.hero();
+                level = loadedGame.level();
+                notification = loadedGame.notification();
+
+                gameFieldInit = true;
+                gameSessionMode = GameSessionMode.GAME_FIELD;
+            }
+            case "backspace", "esc" -> {
+                repo.rmSave();
+                initVals();
+                gameSessionMode = GameSessionMode.ENTER_THE_NAME;
+            }
+            default -> notification = "Do you want to continue the last game?";
         }
     }
 
@@ -83,7 +183,11 @@ public class GameSession {
 
     private void executeEnterTheNameCommand(String command) {
         switch (command) {
-            case "\n" -> gameSessionMode = GameSessionMode.GAME_FIELD;
+            case "\n" -> {
+                if (!enterTheName.getName().isEmpty()) {
+                    gameSessionMode = GameSessionMode.GAME_FIELD;
+                }
+            }
             case "backspace" -> enterTheName.removeLastLetter();
             default -> {
                 if (command.length() == 1) {
@@ -101,10 +205,10 @@ public class GameSession {
      */
     private void executeGameFieldCommand(String command) {
         fieldUpdating = switch (command) {
-            case "w" -> level.heroMoveUp();
-            case "d" -> level.heroMoveRight();
-            case "s" -> level.heroMoveDown();
-            case "a" -> level.heroMoveLeft();
+            case "w", "arrowUp" -> level.heroMoveUp();
+            case "d", "arrowRight" -> level.heroMoveRight();
+            case "s", "arrowDown" -> level.heroMoveDown();
+            case "a", "arrowLeft" -> level.heroMoveLeft();
             case "i" -> {
                 hero.createInventoryField(null, ROWS, COLUMNS);
                 gameSessionMode = GameSessionMode.INVENTORY;
@@ -182,8 +286,30 @@ public class GameSession {
             notification = gameSessionMode.getInventoryMode().getAction();
         }
         if (level.isGameOver()) {
-            gameSessionMode = GameSessionMode.SCORES;
+            handleGameOverLogic();
+
         }
+    }
+
+    /**
+     * Обрабатывает переход к этапу показа рекордов
+     */
+    private void handleGameOverLogic() {
+        repo.rmSave();
+        gameSessionMode = GameSessionMode.SCORES;
+        loadedScoreList.add(new LoadedScoreData(
+                enterTheName.getName(),
+                hero.takeGold(),
+                levelNum,
+                hero.getSteps(),
+                hero.getKills(),
+                hero.getFoodEaten(),
+                hero.getPotionsDrunk(),
+                hero.getScrollsRead(),
+                hero.getHits(),
+                hero.getMisses())
+        );
+        repo.saveScoreList(loadedScoreList);
     }
 
     /**
@@ -272,6 +398,7 @@ public class GameSession {
             try {
                 int num = Integer.parseInt(command);
                 if (hero.useScroll(num)) {
+                    hero.setScrollsRead(hero.getScrollsRead() + 1);
                     gameSessionMode = GameSessionMode.GAME_FIELD;
                 }
             } catch (Exception _) {
@@ -288,6 +415,7 @@ public class GameSession {
                 if (!hero.usePotion(num)) {
                     notification = "This effect has not ended";
                 }
+                hero.setPotionsDrunk(hero.getPotionsDrunk() + 1);
                 gameSessionMode = GameSessionMode.GAME_FIELD;
             } catch (Exception _) {
             }
@@ -301,6 +429,7 @@ public class GameSession {
             try {
                 int num = Integer.parseInt(command);
                 if (hero.useFood(num)) {
+                    hero.setFoodEaten(hero.getFoodEaten() + 1);
                     gameSessionMode = GameSessionMode.GAME_FIELD;
                 }
             } catch (Exception _) {
@@ -315,7 +444,7 @@ public class GameSession {
     private void nextLevel() {
         levelNum++;
         if (levelNum > 21) {
-            gameSessionMode = GameSessionMode.SCORES;
+            handleGameOverLogic();
         } else {
             level = new Level(ROWS, COLUMNS, levelNum, hero);
         }
@@ -335,5 +464,9 @@ public class GameSession {
                 "Ag:" + hero.takeTotalAgility(),
                 "Gold:" + hero.takeGold(),
         };
+    }
+
+    public boolean isTurnedOn() {
+        return turnedOn;
     }
 }

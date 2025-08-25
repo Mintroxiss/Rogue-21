@@ -25,7 +25,8 @@ public class Main {
         TextGraphics graphics = screen.newTextGraphics();
         graphics.setBackgroundColor(TextColor.ANSI.BLACK);
 
-        while (gameSession.isNotGameOver()) {
+        while (gameSession.isTurnedOn()) {
+            screen.clear();
             if (gameSession.isFieldUpdating()) {
                 switch (gameSession.getGameSessionMode()) {
                     case ENTER_THE_NAME -> addEnterTheNameFieldInScreen(graphics, gameSession);
@@ -37,7 +38,7 @@ public class Main {
                         addInventoryFieldInScreen(graphics, gameSession);
                         addGameInfoInScreen(graphics, gameSession);
                     }
-                    case SCORES -> {}
+                    case SCORES -> addScoreFieldInScreen(graphics, gameSession);
                 }
                 addNotificationInScreen(graphics, gameSession);
                 screen.refresh();
@@ -114,19 +115,19 @@ public class Main {
         if (key.getCharacter() != null) {
             char c = key.getCharacter();
 
-            if (c == 8)   return "backspace";
+            if (c == 8) return "backspace";
 
             return String.valueOf(c);
         }
 
         KeyType type = key.getKeyType();
         return switch (type) {
-            case ArrowUp    -> "w";
-            case ArrowDown  -> "s";
-            case ArrowLeft  -> "a";
-            case ArrowRight -> "d";
-            case Enter      -> "enter";
-            case Escape     -> "esc";
+            case ArrowUp -> "arrowUp";
+            case ArrowDown -> "arrowDown";
+            case ArrowLeft -> "arrowLeft";
+            case ArrowRight -> "arrowRight";
+            case Enter -> "enter";
+            case Escape -> "esc";
             default -> null;
         };
     }
@@ -134,6 +135,16 @@ public class Main {
 
     private static void addInventoryFieldInScreen(TextGraphics graphics, GameSession gameSession) {
         char[][] inventoryField = gameSession.getInventoryField();
+        graphics.setForegroundColor(TextColor.ANSI.WHITE);
+        for (int i = 0; i < gameSession.ROWS; i++) {
+            for (int j = 0; j < gameSession.COLUMNS; j++) {
+                graphics.setCharacter(j, i + 3, inventoryField[i][j]);
+            }
+        }
+    }
+
+    private static void addScoreFieldInScreen(TextGraphics graphics, GameSession gameSession) {
+        char[][] inventoryField = gameSession.getScoreField();
         graphics.setForegroundColor(TextColor.ANSI.WHITE);
         for (int i = 0; i < gameSession.ROWS; i++) {
             for (int j = 0; j < gameSession.COLUMNS; j++) {

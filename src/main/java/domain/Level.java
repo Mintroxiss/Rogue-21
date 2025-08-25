@@ -335,6 +335,7 @@ public class Level {
         if (res) {
             processVisibleAroundHero(Direction.UP);
             hero.decreasePotionDurations();
+
         }
         return res;
     }
@@ -560,15 +561,18 @@ public class Level {
             }
             if (damage == 0) {
                 notification = enemyTarget.getEnemyType().getName() + " dodged";
+                hero.setMisses(hero.getMisses() + 1);
             } else {
                 notification = enemyTarget.getEnemyType().getName() + " took " + damage + " damage";
                 enemyTarget.increaseNumOfHitsReceived();
+                hero.setHits(hero.getHits() + 1);
             }
             enemyTarget.setHealth(enemyTarget.getHealth() - damage);
 
             if (enemyTarget.takeDied()) {
                 newCell.setCreature(null);
                 enemies.remove(enemyTarget);
+                hero.setKills(hero.getKills() + 1);
                 notification += ", the creature is died";
                 if (newCell.getItem() == null) {
                     newCell.setItem(enemyTarget.getRewardTreasure());
@@ -601,6 +605,7 @@ public class Level {
                 newCell.setCreature(hero);
                 oldCell.setCreature(null);
                 processVisibleRoom();
+                hero.setSteps(hero.getSteps() + 1);
             } else {
                 hero.changeStunState();
                 stunFl = true;

@@ -1,7 +1,7 @@
 package domain;
 
 public class EnterTheName {
-    private final int MAX_LENGTH = 12;
+    public final int MAX_LENGTH = 12;
     private String name = "";
 
     public void addLetter(char letter) {

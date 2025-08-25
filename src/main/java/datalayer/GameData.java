@@ -3,10 +3,6 @@ package datalayer;
 import domain.Level;
 import domain.entities.creatures.Hero;
 
-public class GameData {
-    public int levelNum;
-    public String name;
-    public Hero hero;
-    public Level level;
-    public String notification;
+public record GameData(int levelNum, String name, Hero hero, Level level, String notification) {
+
 }

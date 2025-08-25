@@ -1,6 +1,7 @@
 package domain;
 
 public enum GameSessionMode {
+    CONTINUE,
     ENTER_THE_NAME,
     GAME_FIELD,
     INVENTORY,

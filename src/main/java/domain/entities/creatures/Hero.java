@@ -17,6 +17,14 @@ public class Hero extends Creature {
     private int agilityPotionDuration = 0;
     private int maxHealthPotionDuration = 0;
 
+    private int kills = 0;
+    private int hits = 0;
+    private int misses = 0;
+    private int steps = 0;
+    private int foodEaten = 0;
+    private int potionsDrunk = 0;
+    private int scrollsRead = 0;
+
     private Inventory inventory = new Inventory();
 
     public Hero() {
@@ -413,5 +421,61 @@ public class Hero extends Creature {
 
     public void setInventory(Inventory inventory) {
         this.inventory = inventory;
+    }
+
+    public int getKills() {
+        return kills;
+    }
+
+    public void setKills(int kills) {
+        this.kills = kills;
+    }
+
+    public int getFoodEaten() {
+        return foodEaten;
+    }
+
+    public void setFoodEaten(int foodEaten) {
+        this.foodEaten = foodEaten;
+    }
+
+    public int getPotionsDrunk() {
+        return potionsDrunk;
+    }
+
+    public void setPotionsDrunk(int potionsDrunk) {
+        this.potionsDrunk = potionsDrunk;
+    }
+
+    public int getScrollsRead() {
+        return scrollsRead;
+    }
+
+    public void setScrollsRead(int scrollsRead) {
+        this.scrollsRead = scrollsRead;
+    }
+
+    public int getHits() {
+        return hits;
+    }
+
+    public void setHits(int hits) {
+        this.hits = hits;
+    }
+
+    public int getMisses() {
+        return misses;
+    }
+
+    public void setMisses(int misses) {
+        this.misses = misses;
+    }
+
+    public int getSteps() {
+        return steps;
+    }
+
+    public void setSteps(int steps) {
+        this.steps = steps;
     }
 }
